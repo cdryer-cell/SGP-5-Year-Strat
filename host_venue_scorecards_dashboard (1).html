@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SailGP Host Venue Scorecards Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* RESET & THEME SYSTEM */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background-color: #0b0e14;
+            color: #ffffff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            width: 1280px;
+            background-color: #111622;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .dashboard-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, #ccff00 0%, #00e5ff 100%);
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Outfit', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: -0.01em;
+        }
+
+        p {
+            color: #94a3b8;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 25px;
+        }
+
+        .dash-title-area h1 {
+            font-size: 30px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .dash-title-area .subtitle-tag {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #ccff00;
+            text-transform: uppercase;
+        }
+
+        /* NAVIGATION TABS styling */
+        .navigation-tabs {
+            display: flex;
+            gap: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 10px;
+            margin-top: -10px;
+        }
+
+        .nav-tab-btn {
+            background-color: transparent;
+            border: none;
+            color: #94a3b8;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 10px 15px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .nav-tab-btn:hover {
+            color: #ffffff;
+        }
+
+        .nav-tab-btn.active {
+            color: #ccff00;
+            border-bottom-color: #ccff00;
+        }
+
+        .btn-volt {
+            background-color: #ccff00;
+            color: #0b0e14;
+            border: none;
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 10px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.5px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-volt:hover { opacity: 0.9; }
+
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .kpi-card {
+            background-color: #161d2a;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: transparent;
+        }
+
+        .kpi-card.accent-volt::after { background-color: #ccff00; }
+        .kpi-card.accent-cyan::after { background-color: #00e5ff; }
+        .kpi-card.accent-red::after { background-color: #ef4444; }
+
+        .kpi-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .kpi-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .kpi-value span { font-size: 14px; color: #94a3b8; font-weight: 400; }
+
+        .control-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.02);
+            padding: 15px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .filter-group { display: flex; gap: 15px; align-items: center; }
+
+        .filter-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            color: #ccff00;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .filter-btn {
+            background-color: #1a2332;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 8px 14px;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-btn.active {
+            background-color: #ccff00;
+            color: #0b0e14;
+            border-color: #ccff00;
+        }
+
+        .filter-btn.btn-redline { border-color: rgba(239, 68, 68, 0.3); color: #ef4444; }
+        .filter-btn.btn-redline.active { background-color: #ef4444; color: #ffffff; border-color: #ef4444; }
+
+        .exec-table { width: 100%; border-collapse: collapse; }
+        .exec-table th {
+            background-color: #161d2a;
+            color: #ccff00;
+            font-family: 'Outfit', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 16px 15px;
+            text-align: left;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .exec-table th.sortable-header { cursor: pointer; user-select: none; transition: background-color 0.2s; }
+        .exec-table th.sortable-header:hover { background-color: #1f2a3c !important; }
+        .exec-table th.sortable-header.active-sort { background-color: rgba(204, 255, 0, 0.05); }
+
+        .sort-icon { font-size: 11px; margin-left: 6px; color: #475569; }
+        .exec-table th.sortable-header.active-sort .sort-icon { color: #ccff00; }
+
+        .exec-table td { padding: 16px 15px; border: 1px solid rgba(255, 255, 255, 0.05); vertical-align: middle; font-size: 14px; }
+        .exec-table tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.01); }
+        .exec-table tr:hover { background-color: rgba(255, 255, 255, 0.03); }
+
+        .venue-name { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; color: #ffffff; }
+
+        .archetype-tag {
+            font-family: 'Outfit', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            text-transform: uppercase;
+            border-radius: 2px;
+            width: fit-content;
+            display: inline-block;
+        }
+        .archetype-tag.anchor { background-color: rgba(0, 229, 255, 0.1); color: #00e5ff; border: 1px solid rgba(0, 229, 255, 0.2); }
+        .archetype-tag.flagship { background-color: rgba(204, 255, 0, 0.1); color: #ccff00; border: 1px solid rgba(204, 255, 0, 0.2); }
+        .archetype-tag.catalyst { background-color: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.2); }
+        .archetype-tag.footprint { background-color: rgba(234, 179, 8, 0.1); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.2); }
+
+        .bar-container { display: flex; align-items: center; gap: 10px; width: 100%; }
+        .bar-track { flex-grow: 1; height: 6px; background-color: rgba(255, 255, 255, 0.08); position: relative; border-radius: 3px; }
+        .bar-fill { height: 100%; border-radius: 3px; background: #ccff00; }
+        .bar-val { font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; width: 24px; text-align: right; }
+
+        .badge-redline { display: flex; align-items: center; gap: 6px; font-family: 'Outfit', sans-serif; font-size: 10px; font-weight: 700; color: #ef4444; background-color: rgba(239, 68, 68, 0.1); padding: 4px 8px; border-radius: 2px; }
+        .badge-pass { display: flex; align-items: center; gap: 6px; font-family: 'Outfit', sans-serif; font-size: 10px; font-weight: 700; color: #10b981; background-color: rgba(16, 185, 129, 0.1); padding: 4px 8px; border-radius: 2px; }
+
+        .action-btn { background-color: transparent; border: 1px solid rgba(0, 229, 255, 0.3); color: #00e5ff; font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 700; padding: 8px 14px; cursor: pointer; text-transform: uppercase; transition: all 0.2s; }
+        .action-btn:hover { background-color: #00e5ff; color: #0b0e14; }
+
+        .delete-btn { background-color: transparent; border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 700; padding: 8px 12px; cursor: pointer; text-transform: uppercase; margin-left: 5px; transition: all 0.2s; display: inline-block; }
+        .delete-btn:hover { background-color: #ef4444; color: #ffffff; border-color: #ef4444; }
+
+        /* METHODOLOGY SCREEN styling */
+        .methodology-view {
+            display: none;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .meth-banner {
+            background-color: rgba(204, 255, 0, 0.02);
+            border: 1px solid rgba(204, 255, 0, 0.1);
+            border-left: 4px solid #ccff00;
+            padding: 25px 30px;
+        }
+
+        .meth-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        .meth-card {
+            background-color: #161d2a;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+        }
+
+        .meth-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 15px;
+        }
+
+        .formula-badge {
+            background-color: rgba(0, 229, 255, 0.08);
+            border: 1px dashed #00e5ff;
+            color: #00e5ff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 2px;
+        }
+
+        .active-distribution-box {
+            background-color: rgba(255, 255, 255, 0.01);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 15px;
+            margin-top: auto;
+        }
+
+        .active-distribution-box h5 {
+            font-size: 11px;
+            color: #64748b;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .mapped-venue-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .mapped-pill {
+            background-color: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 2px;
+        }
+
+        .scorecard-view { display: none; flex-direction: column; gap: 30px; }
+        .editor-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 25px; }
+        .back-btn { background-color: #1a2332; border: 1px solid rgba(255, 255, 255, 0.1); color: #ffffff; font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700; padding: 10px 18px; cursor: pointer; text-transform: uppercase; }
+        .back-btn:hover { border-color: #ccff00; color: #ccff00; }
+
+        .editor-table { width: 100%; border-collapse: collapse; }
+        .editor-table th { background-color: #161d2a; color: #ccff00; font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 15px; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .editor-table td { padding: 15px; border: 1px solid rgba(255, 255, 255, 0.05); vertical-align: middle; }
+
+        .cat-cell { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 16px; text-transform: uppercase; background-color: rgba(255, 255, 255, 0.01); }
+        .cat-cell i { margin-right: 8px; color: #00e5ff; }
+        .owner-badge { display: inline-block; font-size: 10px; font-weight: 700; background-color: rgba(0, 229, 255, 0.1); color: #00e5ff; padding: 2px 6px; border-radius: 2px; margin-top: 5px; }
+
+        .criteria-title { font-weight: 600; color: #ffffff; font-size: 15px; margin-bottom: 4px; }
+        .criteria-desc { font-size: 13px; color: #94a3b8; line-height: 1.4; }
+
+        .score-select { width: 100%; background-color: #1a2332; border: 1px solid rgba(255, 255, 255, 0.1); color: #ffffff; font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 700; padding: 10px; cursor: pointer; }
+        .notes-input { width: 100%; background-color: transparent; border: 1px solid rgba(255, 255, 255, 0.05); color: #ffffff; font-size: 13px; padding: 8px; resize: none; height: 45px; }
+
+        .editor-total-bar { background-color: #161d2a; border: 1px solid rgba(255, 255, 255, 0.05); padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .totals-meta { display: flex; gap: 30px; flex-wrap: wrap; }
+        .total-pill { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 10px 15px; font-family: 'Outfit', sans-serif; font-size: 13px; color: #94a3b8; }
+        .total-pill strong { color: #ffffff; display: block; font-size: 16px; margin-top: 2px; }
+        .total-display { font-family: 'Outfit', sans-serif; font-size: 36px; font-weight: 800; color: #ccff00; }
+        .total-display span { font-size: 14px; color: #94a3b8; font-weight: 400; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(11, 14, 20, 0.85); backdrop-filter: blur(8px); z-index: 100; display: none; justify-content: center; align-items: center; }
+        .modal-box { width: 480px; background-color: #111622; border: 1px solid rgba(255, 255, 255, 0.1); border-top: 5px solid #ccff00; padding: 35px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; gap: 20px; }
+        .modal-title { font-size: 22px; font-weight: 700; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-label { font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 700; color: #ccff00; text-transform: uppercase; letter-spacing: 1px; }
+        .form-input { width: 100%; background-color: #161d2a; border: 1px solid rgba(255, 255, 255, 0.1); color: #ffffff; font-size: 15px; padding: 12px; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px; }
+        .btn-cancel { background-color: transparent; border: 1px solid rgba(255, 255, 255, 0.1); color: #94a3b8; font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; padding: 10px 18px; cursor: pointer; }
+
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+        .redline-indicator.active { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); animation: pulse 2s infinite; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+
+        <!-- ================= MASTER HEADER AREA ================= -->
+        <div class="dash-header">
+            <div class="dash-title-area">
+                <span class="subtitle-tag">Portfolio Control Center</span>
+                <h1>Host Venue Scorecards</h1>
+            </div>
+            <!-- Placed in Master header to be accessible on both main summary tabs -->
+            <button class="btn-volt" id="header-add-btn" onclick="openAddVenueModal()"><i class="fa-solid fa-plus"></i> Add Host Venue</button>
+        </div>
+
+        <!-- ================= NAVIGATION TABS CONTROL ================= -->
+        <div class="navigation-tabs" id="navigation-tabs-bar">
+            <button class="nav-tab-btn active" id="btn-tab-portfolio" onclick="switchMainTab('portfolio')">
+                <i class="fa-solid fa-table-list"></i> Portfolio Summary
+            </button>
+            <button class="nav-tab-btn" id="btn-tab-methodology" onclick="switchMainTab('methodology')">
+                <i class="fa-solid fa-gears"></i> Archetype Methodology
+            </button>
+            <button class="nav-tab-btn" id="btn-tab-criteria" onclick="switchMainTab('criteria')">
+                <i class="fa-solid fa-list-check"></i> Criteria Manager
+            </button>
+        </div>
+
+        <!-- ================= MASTER PORTFOLIO SUMMARY VIEW ================= -->
+        <div id="exec-view" style="display: flex; flex-direction: column; gap: 30px;">
+
+            <!-- PORTFOLIO CONTENT (TAB 1) -->
+            <div id="portfolio-tab-content" style="display: flex; flex-direction: column; gap: 30px;">
+                <div class="kpi-row">
+                    <div class="kpi-card accent-volt">
+                        <span class="kpi-label">Average Portfolio Score</span>
+                        <div class="kpi-value" id="kpi-avg-score">0.0 <span>/ 50 Max</span></div>
+                    </div>
+                    <div class="kpi-card accent-cyan">
+                        <span class="kpi-label">Strategic Assets Scored</span>
+                        <div class="kpi-value" id="kpi-scored-count">0 <span>Events</span></div>
+                    </div>
+                    <div class="kpi-card accent-volt">
+                        <span class="kpi-label">Top Performer Venue</span>
+                        <div class="kpi-value" id="kpi-top-venue" style="font-size: 20px; padding: 4px 0;">--</div>
+                    </div>
+                    <div class="kpi-card accent-red">
+                        <span class="kpi-label">Active Red Flags</span>
+                        <div class="kpi-value" id="kpi-redlines" style="color: #ef4444;">0 <span>Venues Flagged</span></div>
+                    </div>
+                </div>
+
+                <div class="control-bar">
+                    <div class="filter-group">
+                        <span class="filter-label">Filter Archetype:</span>
+                        <button class="filter-btn active" onclick="filterPortfolio('all', this)">All Portfolio</button>
+                        <button class="filter-btn" onclick="filterPortfolio('Commercial Anchor', this)">Anchors</button>
+                        <button class="filter-btn" onclick="filterPortfolio('Audience Flagship', this)">Flagships</button>
+                        <button class="filter-btn" onclick="filterPortfolio('Commercial Catalyst', this)">Catalysts</button>
+                        <button class="filter-btn" onclick="filterPortfolio('Strategic Footprint', this)">Footprints</button>
+                    </div>
+                    <div>
+                        <button class="filter-btn btn-redline" id="redline-filter-btn" onclick="toggleRedlineOnly(this)"><i class="fa-solid fa-triangle-exclamation"></i> Show Flagged Only</button>
+                    </div>
+                </div>
+
+                <table class="exec-table">
+                    <thead>
+                        <tr>
+                            <!-- Dynamic columns generated via renderTableHeaders -->
+                        </tr>
+                    </thead>
+                    <tbody id="portfolio-table-body"></tbody>
+                </table>
+            </div>
+
+            <!-- METHODOLOGY CONTENT (TAB 2) -->
+            <div id="methodology-tab-content" class="methodology-view">
+                <div class="meth-banner">
+                    <h4 style="color:#ccff00; font-size:14px; margin-bottom:8px; letter-spacing:1px;"><i class="fa-solid fa-square-poll-vertical"></i> Archetype Assignment Methodology</h4>
+                    <p style="color:#ffffff; font-size:15px; margin-bottom:0;">
+                        Host venues are mapped to strategic roles programmatically based on 4 scoring vectors: 
+                        <strong>Commercial Yield (CY)</strong>, <strong>Sailing Conditions (SC)</strong>, <strong>Audience Scale (AG)</strong>, and <strong>Partner Alignment (PA)</strong>. 
+                        Each vector represents the average (1-5 scale) calculated from SME scorecard metrics.
+                    </p>
+                </div>
+
+                <div class="meth-grid">
+                    <!-- Commercial Anchor Card -->
+                    <div class="meth-card" style="border-left: 4px solid #00e5ff;">
+                        <div class="meth-card-header">
+                            <div>
+                                <span class="archetype-tag anchor">Commercial Anchor</span>
+                                <h3 style="margin-top:10px;">The Revenue Bedrock</h3>
+                            </div>
+                            <span class="formula-badge">CY &ge; 4.0 AND PA &ge; 3.5</span>
+                        </div>
+                        <p style="margin-bottom: 10px;"><strong>Strategic Role:</strong> Maximizes direct host city fees, public box office ticket volume, and premium luxury hospitality. Supports and subsidizes expansion operations.</p>
+                        <p style="margin-bottom: 15px;"><strong>Primary Metric:</strong> Net Profit Margin | <strong>Target ROI:</strong> Profit Center</p>
+                        <div class="active-distribution-box">
+                            <h5>Currently Mapped Venues (<span id="count-anchors">0</span>)</h5>
+                            <div class="mapped-venue-pills" id="pills-anchors"></div>
+                        </div>
+                    </div>
+
+                    <!-- Audience Flagship Card -->
+                    <div class="meth-card" style="border-left: 4px solid #ccff00;">
+                        <div class="meth-card-header">
+                            <div>
+                                <span class="archetype-tag flagship">Audience Flagship</span>
+                                <h3 style="margin-top:10px;">The Global Content Factory</h3>
+                            </div>
+                            <span class="formula-badge">SC &ge; 4.0 AND AG &ge; 4.0</span>
+                        </div>
+                        <p style="margin-bottom: 10px;"><strong>Strategic Role:</strong> Leverages exceptional natural foiling winds and mass attendance capacity to generate premier broadcast spectacle and compounded database footprints.</p>
+                        <p style="margin-bottom: 15px;"><strong>Primary Metric:</strong> Global Reach & Media Value | <strong>Target ROI:</strong> Breakeven to Profit</p>
+                        <div class="active-distribution-box">
+                            <h5>Currently Mapped Venues (<span id="count-flagships">0</span>)</h5>
+                            <div class="mapped-venue-pills" id="pills-flagships"></div>
+                        </div>
+                    </div>
+
+                    <!-- Commercial Catalyst Card -->
+                    <div class="meth-card" style="border-left: 4px solid #a855f7;">
+                        <div class="meth-card-header">
+                            <div>
+                                <span class="archetype-tag catalyst">Commercial Catalyst</span>
+                                <h3 style="margin-top:10px;">The B2B Partnership Incubator</h3>
+                            </div>
+                            <span class="formula-badge">PA &ge; 4.5 AND SC &le; 3.8</span>
+                        </div>
+                        <p style="margin-bottom: 10px;"><strong>Strategic Role:</strong> Positioned inside major commercial capitals to host tier-1 global sponsors and close multi-million dollar corporate enterprise agreements.</p>
+                        <p style="margin-bottom: 15px;"><strong>Primary Metric:</strong> Partnership Pipeline Value | <strong>Target ROI:</strong> Indirect Multiplier</p>
+                        <div class="active-distribution-box">
+                            <h5>Currently Mapped Venues (<span id="count-catalysts">0</span>)</h5>
+                            <div class="mapped-venue-pills" id="pills-catalysts"></div>
+                        </div>
+                    </div>
+
+                    <!-- Strategic Footprint Card -->
+                    <div class="meth-card" style="border-left: 4px solid #eab308;">
+                        <div class="meth-card-header">
+                            <div>
+                                <span class="archetype-tag footprint">Strategic Footprint</span>
+                                <h3 style="margin-top:10px;">The High-Potential Trial</h3>
+                            </div>
+                            <span class="formula-badge">CY &lt; 3.0 (OR Fallback)</span>
+                        </div>
+                        <p style="margin-bottom: 10px;"><strong>Strategic Role:</strong> Short-term pilot events to test emerging market appetite, establish baseline regional awareness, and pilot high-performance marine viability.</p>
+                        <p style="margin-bottom: 15px;"><strong>Primary Metric:</strong> Market Conversion Rate | <strong>Target ROI:</strong> 4-Year Maturity Mandate</p>
+                        <div class="active-distribution-box">
+                            <h5>Currently Mapped Venues (<span id="count-footprints">0</span>)</h5>
+                            <div class="mapped-venue-pills" id="pills-footprints"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CRITERIA MANAGER CONTENT (TAB 3) -->
+            <div id="criteria-tab-content" style="display: none; flex-direction: column; gap: 30px;">
+                <div class="meth-banner">
+                    <h4 style="color:#ccff00; font-size:14px; margin-bottom:8px; letter-spacing:1px;"><i class="fa-solid fa-list-check"></i> Scoring Criteria & Pillar Manager</h4>
+                    <p style="color:#ffffff; font-size:15px; margin-bottom:0;">
+                        Customize evaluation pillars and sub-category criteria in real-time. Any changes made here are reflected across all venues immediately. Standard pillar IDs (p1 to p4) are preserved to drive the archetype algorithms.
+                    </p>
+                    <div style="margin-top: 15px; display: flex; gap: 12px;">
+                        <button class="btn-volt" onclick="openPillarModal('add')"><i class="fa-solid fa-folder-plus"></i> Add New Pillar</button>
+                    </div>
+                </div>
+
+                <div class="meth-grid" id="criteria-manager-grid" style="grid-template-columns: 1fr;">
+                    <!-- Generated Dynamically in JS -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================= WORKSPACE EDITOR VIEW ================= -->
+        <div id="scorecard-view" class="scorecard-view">
+            <div class="editor-header">
+                <div>
+                    <button class="back-btn" onclick="showDashboard()"><i class="fa-solid fa-arrow-left"></i> Return to Summary</button>
+                    <h1 id="editor-title" style="margin-top: 15px; font-size: 32px;">Host Venue Evaluation</h1>
+                </div>
+                <div class="alert-box" id="editor-alert">Saved to browser local storage.</div>
+            </div>
+
+            <div class="diagnostic-card">
+                <div class="diagnostic-header">
+                    <h4 style="color:#ccff00; font-size:14px;"><i class="fa-solid fa-robot"></i> Automated Archetype Determination Engine</h4>
+                    <span id="diagnostic-active-badge" class="archetype-tag">--</span>
+                </div>
+                <div class="diagnostic-grid">
+                    <!-- Populated dynamically based on schema -->
+                </div>
+                <div class="rule-matched-banner">
+                    <i class="fa-solid fa-code-merge" style="color:#00e5ff; font-size:18px;"></i>
+                    <div><span style="font-size:11px; color:#94a3b8; display:block;">Triggered Classification Rule</span><strong id="diag-matched-rule">--</strong></div>
+                </div>
+            </div>
+
+            <table class="editor-table">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">Evaluation Pillar</th>
+                        <th style="width: 35%;">Sub-Category Criteria Details</th>
+                        <th style="width: 12%; text-align: center;">Score (1-5)</th>
+                        <th style="width: 15%; text-align: center;">Red Line Check</th>
+                        <th style="width: 18%;">SME Context / Data Source</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Populated dynamically based on schema -->
+                </tbody>
+            </table>
+
+            <div class="editor-total-bar">
+                <div class="totals-meta">
+                    <!-- Populated dynamically based on schema -->
+                </div>
+                <div style="text-align: right;">
+                    <span class="total-label" style="font-size: 14px;">Calculated Aggregate Score</span>
+                    <div class="total-display" id="editor-total">0 <span>/ 50 MAX</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ADD HOST VENUE MODAL ================= -->
+    <div id="add-venue-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 class="modal-title">Create Host Venue Entry</h3>
+            <div class="form-group">
+                <label class="form-label">Venue Name</label>
+                <input type="text" id="new-venue-name" class="form-input" placeholder="e.g., Sydney, London, Tokyo">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Initial Context Notes</label>
+                <textarea id="new-venue-notes" class="form-input" style="height: 80px; resize: none;" placeholder="Provide short background context..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeAddVenueModal()">Cancel</button>
+                <button class="btn-volt" onclick="submitAddVenue()">Create & Score</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PILLAR SCHEMA MODAL ================= -->
+    <div id="pillar-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 class="modal-title" id="pillar-modal-title">Create Evaluation Pillar</h3>
+            
+            <div class="form-group">
+                <label class="form-label">Pillar Name</label>
+                <input type="text" id="pillar-name" class="form-input" placeholder="e.g., Sustainability Index">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Owner / SME Executive</label>
+                <input type="text" id="pillar-owner" class="form-input" placeholder="e.g., CMO, COO or CCO">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">FontAwesome Icon Class</label>
+                <input type="text" id="pillar-icon" class="form-input" placeholder="e.g., fa-leaf, fa-anchor, fa-shield-halved">
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closePillarModal()">Cancel</button>
+                <button class="btn-volt" onclick="submitPillar()">Save Pillar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= CRITERIA SCHEMA MODAL ================= -->
+    <div id="criteria-modal" class="modal-overlay">
+        <div class="modal-box" style="width: 520px;">
+            <h3 class="modal-title" id="criteria-modal-title">Create Evaluation Criterion</h3>
+            
+            <div class="form-group">
+                <label class="form-label">Criterion Title</label>
+                <input type="text" id="criteria-title-input" class="form-input" placeholder="e.g., Carbon Reduction Plan">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea id="criteria-desc-input" class="form-input" style="height: 70px; resize: none;" placeholder="Explain the focus metrics for this score category..."></textarea>
+            </div>
+
+            <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; margin-top: 5px;">
+                <input type="checkbox" id="criteria-redline" style="width: 18px; height: 18px; cursor: pointer;">
+                <label class="form-label" style="margin: 0; cursor: pointer;" for="criteria-redline">Set as Critical Red Line Threshold</label>
+            </div>
+
+            <div class="form-group" id="criteria-redline-label-group" style="display: none;">
+                <label class="form-label">Red Line Trigger Label</label>
+                <input type="text" id="criteria-redline-label" class="form-input" placeholder="e.g., Sustainability Floor">
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeCriteriaModal()">Cancel</button>
+                <button class="btn-volt" onclick="submitCriteria()">Save Criterion</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= DELETE CONFIRMATION MODAL ================= -->
+    <div id="delete-confirm-modal" class="modal-overlay">
+        <div class="modal-box" style="border-top-color: #ef4444; width: 440px;">
+            <h3 class="modal-title" style="color: #ef4444;"><i class="fa-solid fa-trash-can"></i> Confirm Deletion</h3>
+            <p style="margin-top: 10px; line-height: 1.5; color: #94a3b8;">Are you sure you want to delete <strong id="delete-venue-name" style="color: #ffffff;"></strong> from the strategic portfolio? This action cannot be undone.</p>
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn-volt" onclick="confirmDeleteVenue()" style="background-color: #ef4444; color: #ffffff;">Delete Venue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PILLAR DELETE CONFIRMATION MODAL ================= -->
+    <div id="pillar-delete-confirm-modal" class="modal-overlay">
+        <div class="modal-box" style="border-top-color: #ef4444; width: 440px;">
+            <h3 class="modal-title" style="color: #ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Delete Pillar</h3>
+            <p style="margin-top: 10px; line-height: 1.5; color: #94a3b8;">Are you sure you want to delete <span id="delete-pillar-name" style="color: #ffffff; font-weight: 700;"></span> and all its sub-category criteria? This action cannot be undone.</p>
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button class="btn-cancel" onclick="closePillarDeleteModal()">Cancel</button>
+                <button class="btn-volt" onclick="confirmDeletePillar()" style="background-color: #ef4444; color: #ffffff;">Delete Pillar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= CRITERIA DELETE CONFIRMATION MODAL ================= -->
+    <div id="criteria-delete-confirm-modal" class="modal-overlay">
+        <div class="modal-box" style="border-top-color: #ef4444; width: 440px;">
+            <h3 class="modal-title" style="color: #ef4444;"><i class="fa-solid fa-trash-can"></i> Delete Criterion</h3>
+            <p style="margin-top: 10px; line-height: 1.5; color: #94a3b8;">Are you sure you want to delete <strong id="delete-criteria-name" style="color: #ffffff;"></strong>? This will remove all associated scores and notes across all venues.</p>
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button class="btn-cancel" onclick="closeCriteriaDeleteModal()">Cancel</button>
+                <button class="btn-volt" onclick="confirmDeleteCriteria()" style="background-color: #ef4444; color: #ffffff;">Delete Criterion</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let venues = [];
+        let criteriaSchema = [];
+        let activeFilter = 'all';
+        let showRedlinesOnly = false;
+        let selectedVenueId = null;
+        let sortField = 'score';
+        let sortDirection = 'desc';
+        let venueIdToDelete = null;
+        let currentTab = 'portfolio';
+
+        // Modals Schema manipulation State
+        let activePillarModalMode = 'add'; 
+        let editingPillarId = null;
+        let activeCriteriaModalMode = 'add';
+        let criteriaParentPillarId = null;
+        let editingCriteriaId = null;
+        let pillarIdToDelete = null;
+        let criteriaIdToDelete = null;
+        let criteriaParentPillarIdToDelete = null;
+
+        const defaultCriteriaSchema = [
+            {
+                id: "p1",
+                name: "Commercial Yield",
+                owner: "CCO",
+                icon: "fa-sack-dollar",
+                items: [
+                    { id: "p1_1", title: "Host City Fee Investment", desc: "Size, security, and multi-year contractual indexing.", redline: true, redlineLabel: "Financial Floor" },
+                    { id: "p1_2", title: "Direct Ticket & Gate Revenue", desc: "Sizing of local public ticketing layouts and crowd volume.", redline: false },
+                    { id: "p1_3", title: "Regional Sponsorship Appetite", desc: "Readiness of regional brands to purchase localized events packages.", redline: false }
+                ]
+            },
+            {
+                id: "p2",
+                name: "Sailing Conditions",
+                owner: "COO",
+                icon: "fa-wind",
+                items: [
+                    { id: "p2_1", title: "Wind Consistency & Integrity", desc: "Probability of 12-22 knot windows inside the racing slot.", redline: true, redlineLabel: "Sporting Trigger" },
+                    { id: "p2_2", title: "Broadcast Backdrop Spectacle", desc: "Natural amphitheater geometry and city skyline proximity.", redline: false },
+                    { id: "p2_3", title: "Marine & Infrastructure Complexity", desc: "Lack of local marine bureaucracy and straightforward harbor setups.", redline: true, redlineLabel: "CapEx Safety" }
+                ]
+            },
+            {
+                id: "p3",
+                name: "Audience Growth",
+                owner: "CMO",
+                icon: "fa-chart-line",
+                items: [
+                    { id: "p3_1", title: "Live Shoreline Attendance Capacity", desc: "Waterfront space to hold mass crowds safely.", redline: false },
+                    { id: "p3_2", title: "Local Fan Database Conversion", desc: "Willingness of the local population to log digital profiles.", redline: false }
+                ]
+            },
+            {
+                id: "p4",
+                name: "Partner Alignment",
+                owner: "CCO",
+                icon: "fa-handshake",
+                items: [
+                    { id: "p4_1", title: "Global Sponsor Footprint Priority", desc: "Alignment with target regions of major global Tier-1 partners.", redline: false },
+                    { id: "p4_2", title: "Fortune 500 Enterprise Hub", desc: "City capability to support high-level B2B commercial pipelines.", redline: false }
+                ]
+            }
+        ];
+
+        const defaultSeedData = [
+            { id: "dubai", name: "Dubai", p1_1: 5, p1_2: 5, p1_3: 5, p2_1: 2, p2_2: 4, p2_3: 4, p3_1: 4, p3_2: 4, p4_1: 4, p4_2: 4, n1_1: "Multi-year commercial deal backed by Dubai Sports Council.", n2_1: "Erratic summer light wind risks, but highly reliable winter conditions." },
+            { id: "abu_dhabi", name: "Abu Dhabi", p1_1: 5, p1_2: 4, p1_3: 5, p2_1: 2, p2_2: 4, p2_3: 4, p3_1: 4, p3_2: 4, p4_1: 4, p4_2: 4, n1_1: "Premium destination fee secured via Abu Dhabi Sports Council.", n2_1: "Wind drops in late spring frames." },
+            { id: "geneva", name: "Geneva", p1_1: 4, p1_2: 5, p1_3: 4, p2_1: 3, p2_2: 4, p2_3: 3, p3_1: 4, p3_2: 4, p4_1: 4, p4_2: 4, n1_1: "High Swiss private capital indexing.", n2_1: "Predictable lake breeze parameters." },
+            { id: "portsmouth", name: "Portsmouth", p1_1: 3, p1_2: 4, p1_3: 3, p2_1: 4, p2_2: 4, p2_3: 3, p3_1: 5, p3_2: 5, p4_1: 3, p4_2: 3, n1_1: "Massive spectator turnout history.", n2_1: "Solid English Channel breeze layout." },
+            { id: "perth", name: "Perth", p1_1: 3, p1_2: 4, p1_3: 3, p2_1: 5, p2_2: 4, p2_3: 4, p3_1: 5, p3_2: 4, p4_1: 3, p4_2: 3, n1_1: "Tourism council backing asset.", n2_1: "Guaranteed Fremantle Doctor high wind vectors." },
+            { id: "bermuda", name: "Bermuda", p1_1: 3, p1_2: 3, p1_3: 3, p2_1: 5, p2_2: 5, p2_3: 4, p3_1: 4, p3_2: 3, p4_1: 3, p4_2: 3, n1_1: "Deep historical structural alignment.", n2_1: "Flawless technical foiling playground." },
+            { id: "valencia", name: "Valencia", p1_1: 3, p1_2: 4, p1_3: 3, p2_1: 4, p2_2: 5, p2_3: 4, p3_1: 5, p3_2: 4, p4_1: 3, p4_2: 3, n1_1: "Tourism board deployment model.", n2_1: "Premium technical infrastructure." },
+            { id: "halifax", name: "Halifax", p1_1: 3, p1_2: 5, p1_3: 3, p2_1: 4, p2_2: 4, p2_3: 4, p3_1: 5, p3_2: 4, p4_1: 3, p4_2: 3, n1_1: "Unprecedented regional ticket footprint.", n2_1: "Natural narrow channel draft advantages." },
+            { id: "sassnitz", name: "Sassnitz", p1_1: 3, p1_2: 4, p1_3: 3, p2_1: 4, p2_2: 4, p2_3: 3, p3_1: 4, p3_2: 4, p4_1: 3, p4_2: 3, n1_1: "German demographic anchor stop.", n2_1: "Open water sea breeze properties." },
+            { id: "rio", name: "Rio", p1_1: 2, p1_2: 3, p1_3: 3, p2_1: 3, p2_2: 5, p2_3: 3, p3_1: 4, p3_2: 3, p4_1: 3, p4_2: 3, n1_1: "Investment phase development.", n2_1: "Highly visual broadcast parameters." },
+            { id: "hong_kong", name: "Hong Kong", p1_1: 2, p1_2: 3, p1_3: 4, p2_1: 3, p2_2: 5, p2_3: 3, p3_1: 4, p3_2: 4, p4_1: 4, p4_2: 4, n1_1: "Strategic tier-1 economic capital point.", n2_1: "Iconic harbor media background." },
+            { id: "new_york", name: "New York", p1_1: 4, p1_2: 4, p1_3: 4, p2_1: 3, p2_2: 5, p2_3: 2, p3_1: 5, p3_2: 5, p4_1: 5, p4_2: 5, n1_1: "Unmatched B2B hospitality epicenter.", n2_1: "Hudson currents present complex delivery blocks." },
+            { id: "san_francisco", name: "San Francisco", p1_1: 3, p1_2: 4, p1_3: 4, p2_1: 5, p2_2: 5, p2_3: 3, p3_1: 5, p3_2: 5, p4_1: 5, p4_2: 5, n1_1: "Premium commercial enterprise anchor.", n2_1: "Reliable structural natural wind machine." }
+        ];
+
+        window.onload = function() {
+            migrateOrSeedData();
+
+            // Set up Redline interactivity checklist listener
+            document.getElementById("criteria-redline").addEventListener("change", function() {
+                document.getElementById("criteria-redline-label-group").style.display = this.checked ? "flex" : "none";
+            });
+
+            switchMainTab('portfolio');
+        }
+
+        // ================= CONFIGURE SYSTEM STORAGE MIGRATION =================
+        function migrateOrSeedData() {
+            // 1. Get or seed criteria schema
+            let storedSchema = localStorage.getItem("sailgp_criteria_schema");
+            if (storedSchema) {
+                criteriaSchema = JSON.parse(storedSchema);
+            } else {
+                criteriaSchema = [...defaultCriteriaSchema];
+                saveCriteriaSchema();
+            }
+
+            // 2. Get or seed venues
+            let storedVenues = localStorage.getItem("sailgp_venues_data");
+            if (storedVenues) {
+                let parsed = JSON.parse(storedVenues);
+                // If legacy flat format is found, migrate it dynamically into nested dynamic format
+                if (parsed.length > 0 && parsed[0].scores === undefined) {
+                    venues = parsed.map(v => {
+                        let scores = {};
+                        let notes = {};
+                        criteriaSchema.forEach(p => {
+                            p.items.forEach(item => {
+                                scores[item.id] = v[item.id] !== undefined ? v[item.id] : 3;
+                                let noteKey = item.id.replace('p', 'n');
+                                notes[item.id] = v[noteKey] !== undefined ? v[noteKey] : "";
+                            });
+                        });
+                        return {
+                            id: v.id,
+                            name: v.name,
+                            scores: scores,
+                            notes: notes
+                        };
+                    });
+                    saveToLocalStorage();
+                } else {
+                    venues = parsed;
+                }
+            } else {
+                venues = defaultSeedData.map(v => {
+                    let scores = {};
+                    let notes = {};
+                    criteriaSchema.forEach(p => {
+                        p.items.forEach(item => {
+                            scores[item.id] = v[item.id] !== undefined ? v[item.id] : 3;
+                            let noteKey = item.id.replace('p', 'n');
+                            notes[item.id] = v[noteKey] !== undefined ? v[noteKey] : "";
+                        });
+                    });
+                    return {
+                        id: v.id,
+                        name: v.name,
+                        scores: scores,
+                        notes: notes
+                    };
+                });
+                saveToLocalStorage();
+            }
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem("sailgp_venues_data", JSON.stringify(venues));
+        }
+
+        function saveCriteriaSchema() {
+            localStorage.setItem("sailgp_criteria_schema", JSON.stringify(criteriaSchema));
+        }
+
+        // ================= STRATEGIC VIEW TAB TRANSITIONS =================
+        function switchMainTab(tabId) {
+            currentTab = tabId;
+            const btnPortfolio = document.getElementById("btn-tab-portfolio");
+            const btnMethodology = document.getElementById("btn-tab-methodology");
+            const btnCriteria = document.getElementById("btn-tab-criteria");
+
+            const contentPortfolio = document.getElementById("portfolio-tab-content");
+            const contentMethodology = document.getElementById("methodology-tab-content");
+            const contentCriteria = document.getElementById("criteria-tab-content");
+
+            btnPortfolio.classList.remove("active");
+            btnMethodology.classList.remove("active");
+            btnCriteria.classList.remove("active");
+
+            contentPortfolio.style.display = "none";
+            contentMethodology.style.display = "none";
+            contentCriteria.style.display = "none";
+
+            if (tabId === 'portfolio') {
+                btnPortfolio.classList.add("active");
+                contentPortfolio.style.display = "flex";
+                renderTableHeaders();
+                renderDashboard();
+            } else if (tabId === 'methodology') {
+                btnMethodology.classList.add("active");
+                contentMethodology.style.display = "flex";
+                renderMethodologyDistribution();
+            } else if (tabId === 'criteria') {
+                btnCriteria.classList.add("active");
+                contentCriteria.style.display = "flex";
+                renderCriteriaManager();
+            }
+        }
+
+        // Generates active host city matching lists inside Methodology cards
+        function renderMethodologyDistribution() {
+            const pillsAnchors = document.getElementById("pills-anchors");
+            const pillsFlagships = document.getElementById("pills-flagships");
+            const pillsCatalysts = document.getElementById("pills-catalysts");
+            const pillsFootprints = document.getElementById("pills-footprints");
+
+            const countAnchors = document.getElementById("count-anchors");
+            const countFlagships = document.getElementById("count-flagships");
+            const countCatalysts = document.getElementById("count-catalysts");
+            const countFootprints = document.getElementById("count-footprints");
+
+            pillsAnchors.innerHTML = "";
+            pillsFlagships.innerHTML = "";
+            pillsCatalysts.innerHTML = "";
+            pillsFootprints.innerHTML = "";
+
+            let cAnchors = 0, cFlagships = 0, cCatalysts = 0, cFootprints = 0;
+
+            venues.forEach(v => {
+                const arch = calculateArchetype(v).name;
+                const pill = document.createElement("span");
+                pill.className = "mapped-pill";
+                pill.innerText = v.name;
+
+                if (arch === "Commercial Anchor") {
+                    pillsAnchors.appendChild(pill);
+                    cAnchors++;
+                } else if (arch === "Audience Flagship") {
+                    pillsFlagships.appendChild(pill);
+                    cFlagships++;
+                } else if (arch === "Commercial Catalyst") {
+                    pillsCatalysts.appendChild(pill);
+                    cCatalysts++;
+                } else {
+                    pillsFootprints.appendChild(pill);
+                    cFootprints++;
+                }
+            });
+
+            countAnchors.innerText = cAnchors;
+            countFlagships.innerText = cFlagships;
+            countCatalysts.innerText = cCatalysts;
+            countFootprints.innerText = cFootprints;
+
+            checkEmptyPills(pillsAnchors);
+            checkEmptyPills(pillsFlagships);
+            checkEmptyPills(pillsCatalysts);
+            checkEmptyPills(pillsFootprints);
+        }
+
+        function checkEmptyPills(container) {
+            if (container.children.length === 0) {
+                container.innerHTML = `<span class="mapped-pill" style="opacity:0.4; font-style:italic;">No active matches</span>`;
+            }
+        }
+
+        function getPillarAverage(venue, pillarId) {
+            const pillar = criteriaSchema.find(p => p.id === pillarId);
+            if (!pillar || !pillar.items || pillar.items.length === 0) return 0;
+            let total = 0;
+            pillar.items.forEach(item => {
+                total += (venue.scores && venue.scores[item.id] !== undefined) ? venue.scores[item.id] : 3;
+            });
+            return total / pillar.items.length;
+        }
+
+        function isVenueRedlined(v) {
+            let redlined = false;
+            criteriaSchema.forEach(p => {
+                p.items.forEach(item => {
+                    if (item.redline) {
+                        const score = (v.scores && v.scores[item.id] !== undefined) ? v.scores[item.id] : 3;
+                        if (score < 3) {
+                            redlined = true;
+                        }
+                    }
+                });
+            });
+            return redlined;
+        }
+
+        function calculateAggregateScore(v) {
+            let sum = 0;
+            criteriaSchema.forEach(p => {
+                p.items.forEach(item => {
+                    sum += (v.scores && v.scores[item.id] !== undefined) ? v.scores[item.id] : 3;
+                });
+            });
+            return sum;
+        }
+
+        function getMaxAggregateScore() {
+            let count = 0;
+            criteriaSchema.forEach(p => {
+                count += p.items.length;
+            });
+            return count * 5;
+        }
+
+        function calculateArchetype(v) {
+            const cy = getPillarAverage(v, "p1");
+            const sc = getPillarAverage(v, "p2");
+            const ag = getPillarAverage(v, "p3");
+            const pa = getPillarAverage(v, "p4");
+
+            if (pa >= 4.5 && sc <= 3.8) return { name: "Commercial Catalyst", rule: "Enterprise Fit Priority (PA ≥ 4.5) with high harbor technical layers (SC ≤ 3.8)." };
+            if (cy >= 4.0 && pa >= 3.5) return { name: "Commercial Anchor", rule: "Revenue Dominance (CY ≥ 4.0) with strong corporate alignment (PA ≥ 3.5)." };
+            if (sc >= 4.0 && ag >= 4.0) return { name: "Audience Flagship", rule: "Elite Sporting Spectacle (SC ≥ 4.0) matched with scaled consumer volume (AG ≥ 4.0)." };
+            if (cy < 3.0) return { name: "Strategic Footprint", rule: "Development Phase play: Investment-driven baseline metrics (CY < 3.0)." };
+            return { name: "Strategic Footprint", rule: "Baseline emerging market deployment framework assignment." };
+        }
+
+        // Helper value extractor for sorting operations
+        function getSortValue(v, field) {
+            switch(field) {
+                case 'name': 
+                    return v.name.toLowerCase();
+                case 'archetype': 
+                    return calculateArchetype(v).name.toLowerCase();
+                case 'status': 
+                    return isVenueRedlined(v) ? 1 : 0;
+                case 'score': 
+                    return calculateAggregateScore(v);
+                default: 
+                    // Assume field represents a dynamic pillarId
+                    return getPillarAverage(v, field);
+            }
+        }
+
+        // ================= DYNAMIC COLUMNS ENGINE =================
+        function renderTableHeaders() {
+            const theadRow = document.querySelector(".exec-table thead tr");
+            if (!theadRow) return;
+
+            let html = `
+                <th id="th-name" onclick="handleSort('name')" class="sortable-header" style="width: 15%;">Host Venue <i class="fa-solid fa-sort sort-icon"></i></th>
+                <th id="th-archetype" onclick="handleSort('archetype')" class="sortable-header" style="width: 15%;">Auto-Classified Archetype <i class="fa-solid fa-sort sort-icon"></i></th>
+            `;
+
+            criteriaSchema.forEach(p => {
+                html += `
+                    <th id="th-${p.id}" onclick="handleSort('${p.id}')" class="sortable-header">${p.name} <i class="fa-solid fa-sort sort-icon"></i></th>
+                `;
+            });
+
+            html += `
+                <th id="th-status" onclick="handleSort('status')" class="sortable-header" style="width: 10%; text-align: center;">P&L Status <i class="fa-solid fa-sort sort-icon"></i></th>
+                <th id="th-score" onclick="handleSort('score')" class="sortable-header" style="width: 8%; text-align: center;">Agg Score <i class="fa-solid fa-sort sort-icon"></i></th>
+                <th style="width: 12%; text-align: center;">Actions</th>
+            `;
+
+            theadRow.innerHTML = html;
+        }
+
+        function renderBar(val, max) {
+            return `<div class="bar-container"><div class="bar-track"><div class="bar-fill" style="width: ${(val/max)*100}%;"></div></div><span class="bar-val">${val}</span></div>`;
+        }
+
+        function renderDashboard() {
+            const tbody = document.getElementById("portfolio-table-body");
+            tbody.innerHTML = "";
+
+            let totalPortfolioScore = 0, flaggedVenuesCount = 0, topScore = -1, topVenueName = "--";
+            const maxAggregateScore = getMaxAggregateScore();
+
+            venues.forEach(v => {
+                const agg = calculateAggregateScore(v);
+                totalPortfolioScore += agg;
+                v.currentArchetype = calculateArchetype(v).name;
+                if (isVenueRedlined(v)) flaggedVenuesCount++;
+                if (agg > topScore) { topScore = agg; topVenueName = v.name; }
+            });
+
+            const avgPort = venues.length ? (totalPortfolioScore / venues.length).toFixed(1) : "0.0";
+            document.getElementById("kpi-avg-score").innerHTML = `${avgPort} <span>/ ${maxAggregateScore} Max</span>`;
+            document.getElementById("kpi-top-venue").innerText = venues.length ? `${topVenueName} (${topScore}/${maxAggregateScore})` : "--";
+            document.getElementById("kpi-redlines").innerHTML = `${flaggedVenuesCount} <span>Flagged</span>`;
+            document.getElementById("kpi-scored-count").innerHTML = `${venues.length} <span>Events</span>`;
+
+            let displayed = venues.filter(v => {
+                const isFlag = isVenueRedlined(v);
+                if (activeFilter !== 'all' && v.currentArchetype !== activeFilter) return false;
+                if (showRedlinesOnly && !isFlag) return false;
+                return true;
+            });
+
+            displayed.sort((a, b) => {
+                let valA = getSortValue(a, sortField), valB = getSortValue(b, sortField);
+                return typeof valA === 'string' ? (sortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA)) : (sortDirection === 'asc' ? valA - valB : valB - valA);
+            });
+
+            // Set Sorting header indicators
+            let activeSortHeaders = ['name', 'archetype', 'status', 'score'];
+            criteriaSchema.forEach(p => activeSortHeaders.push(p.id));
+
+            activeSortHeaders.forEach(f => {
+                const th = document.getElementById(`th-${f}`);
+                if (th) {
+                    th.className = "sortable-header" + (sortField === f ? " active-sort" : "");
+                    const icon = th.querySelector('.sort-icon');
+                    if (icon) icon.className = sortField === f ? (sortDirection === 'asc' ? 'fa-solid fa-sort-up sort-icon' : 'fa-solid fa-sort-down sort-icon') : 'fa-solid fa-sort sort-icon';
+                }
+            });
+
+            displayed.forEach(v => {
+                const agg = calculateAggregateScore(v);
+                const isFlag = isVenueRedlined(v);
+                const cls = v.currentArchetype.toLowerCase().split(' ')[1];
+
+                let row = document.createElement("tr");
+                let pillarsHtml = "";
+
+                criteriaSchema.forEach(p => {
+                    const avg = getPillarAverage(v, p.id).toFixed(1);
+                    pillarsHtml += `<td>${renderBar(avg, 5.0)}</td>`;
+                });
+
+                row.innerHTML = `
+                    <td><span class="venue-name">${v.name}</span></td>
+                    <td><span class="archetype-tag ${cls}">${v.currentArchetype}</span></td>
+                    ${pillarsHtml}
+                    <td style="text-align: center;">${isFlag ? `<span class="badge-redline"><i class="fa-solid fa-triangle-exclamation"></i> Review</span>` : `<span class="badge-pass"><i class="fa-solid fa-circle-check"></i> Pass</span>`}</td>
+                    <td style="text-align: center; font-weight:700; font-size:16px;">${agg} <span style="font-size:11px; color:#94a3b8;">/${maxAggregateScore}</span></td>
+                    <td style="text-align: center; white-space: nowrap;">
+                        <button class="action-btn" onclick="openScorecard('${v.id}')">Audit</button>
+                        <button class="delete-btn" onclick="deleteVenue('${v.id}')"><i class="fa-solid fa-trash-can"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // ================= DYNAMIC CRITERIA MANAGER SYSTEM =================
+        function renderCriteriaManager() {
+            const grid = document.getElementById("criteria-manager-grid");
+            if (!grid) return;
+
+            let html = "";
+            criteriaSchema.forEach(p => {
+                let itemsHtml = "";
+                p.items.forEach(item => {
+                    itemsHtml += `
+                        <div style="background-color: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div>
+                                <strong style="color: #ffffff; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                                    ${item.title} 
+                                    ${item.redline ? `<span style="background-color: rgba(239, 68, 68, 0.1); color: #ef4444; font-size: 10px; font-weight: 700; padding: 2px 6px; text-transform: uppercase;">Redline: ${item.redlineLabel || 'Trigger'}</span>` : ''}
+                                </strong>
+                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0 0 0; text-transform: none; font-family: 'Plus Jakarta Sans', sans-serif;">${item.desc}</p>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="action-btn" style="padding: 4px 10px; font-size: 10px;" onclick="openCriteriaModal('edit', '${p.id}', '${item.id}')">Edit</button>
+                                <button class="delete-btn" style="padding: 4px 10px; font-size: 10px; margin: 0;" onclick="deleteCriteria('${p.id}', '${item.id}')">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                if (p.items.length === 0) {
+                    itemsHtml = `
+                        <p style="font-style: italic; color: #64748b; font-size: 13px; text-align: center; padding: 20px 0;">No criteria items defined in this pillar yet.</p>
+                    `;
+                }
+
+                html += `
+                    <div class="meth-card" style="border-left: 4px solid #ccff00; padding: 25px; display: flex; flex-direction: column; gap: 15px; background-color: #141923;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;">
+                            <div>
+                                <span style="font-size: 11px; font-weight: 700; color: #00e5ff; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Pillar ID: ${p.id.toUpperCase()} (OWNER: ${p.owner})</span>
+                                <h3 style="font-size: 20px; color: #ffffff; display: flex; align-items: center; gap: 8px;"><i class="fa-solid ${p.icon || 'fa-folder'}"></i> ${p.name}</h3>
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <button class="btn-volt" style="padding: 6px 12px; font-size: 11px;" onclick="openCriteriaModal('add', '${p.id}')"><i class="fa-solid fa-plus-circle"></i> Add Criteria</button>
+                                <button class="action-btn" style="padding: 6px 12px; font-size: 11px; border-color: rgba(255,255,255,0.2); color:#ffffff;" onclick="openPillarModal('edit', '${p.id}')">Edit Pillar</button>
+                                <button class="delete-btn" style="padding: 6px 12px; font-size: 11px;" onclick="deletePillar('${p.id}')"><i class="fa-solid fa-trash-can"></i> Delete</button>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 style="font-size: 11px; color: #64748b; margin-bottom: 10px; letter-spacing: 0.5px;">Evaluation Items</h5>
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+
+            grid.innerHTML = html;
+        }
+
+        // ================= DYNAMIC EDITOR CARD MATRIX RENDERERS =================
+        function renderEditorMatrix(venue) {
+            const tbody = document.querySelector(".editor-table tbody");
+            if (!tbody) return;
+
+            let html = "";
+            criteriaSchema.forEach(p => {
+                const rowSpan = p.items.length || 1;
+                p.items.forEach((item, index) => {
+                    const isRedline = item.redline;
+                    const redlineDisplay = isRedline ? `<div class="redline-indicator" id="flag-${item.id}"><i class="fa-solid fa-triangle-exclamation"></i> ${item.redlineLabel || 'Red Line'}</div>` : '--';
+                    const scoreVal = (venue.scores && venue.scores[item.id] !== undefined) ? venue.scores[item.id] : 3;
+                    const noteVal = (venue.notes && venue.notes[item.id] !== undefined) ? venue.notes[item.id] : "";
+
+                    html += `
+                        <tr>
+                            ${index === 0 ? `
+                                <td class="cat-cell" rowspan="${rowSpan}">
+                                    <i class="fa-solid ${p.icon || 'fa-folder'}"></i> ${p.name}
+                                    <br><span class="owner-badge">OWNER: ${p.owner || 'CCO'}</span>
+                                </td>
+                            ` : ''}
+                            <td>
+                                <div class="criteria-title">${item.title}</div>
+                                <div class="criteria-desc">${item.desc}</div>
+                            </td>
+                            <td>
+                                <select class="score-select" onchange="updateVenueScore('${item.id}', this.value)">
+                                    <option value="5" ${scoreVal === 5 ? 'selected' : ''}>5</option>
+                                    <option value="4" ${scoreVal === 4 ? 'selected' : ''}>4</option>
+                                    <option value="3" ${scoreVal === 3 ? 'selected' : ''}>3</option>
+                                    <option value="2" ${scoreVal === 2 ? 'selected' : ''}>2</option>
+                                    <option value="1" ${scoreVal === 1 ? 'selected' : ''}>1</option>
+                                </select>
+                            </td>
+                            <td style="text-align: center;">${redlineDisplay}</td>
+                            <td>
+                                <textarea class="notes-input" onchange="updateVenueNote('${item.id}', this.value)" placeholder="Enter contextual analysis details...">${noteVal}</textarea>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                if (p.items.length === 0) {
+                    html += `
+                        <tr>
+                            <td class="cat-cell">
+                                <i class="fa-solid ${p.icon || 'fa-folder'}"></i> ${p.name}
+                                <br><span class="owner-badge">OWNER: ${p.owner || 'CCO'}</span>
+                            </td>
+                            <td colspan="4" style="text-align: center; color: #64748b; font-style: italic;">
+                                No sub-category criteria defined. Add criteria inside the Criteria Manager tab.
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function renderEditorTotals(venue) {
+            const totalsMeta = document.querySelector(".totals-meta");
+            if (!totalsMeta) return;
+
+            let html = "";
+            criteriaSchema.forEach(p => {
+                const avg = getPillarAverage(venue, p.id).toFixed(1);
+                html += `
+                    <div class="total-pill">${p.name} <strong>${avg}</strong></div>
+                `;
+            });
+            totalsMeta.innerHTML = html;
+        }
+
+        function renderEditorDiagnostics(venue) {
+            const diagGrid = document.querySelector(".diagnostic-grid");
+            if (!diagGrid) return;
+
+            let html = "";
+            criteriaSchema.forEach(p => {
+                const avg = getPillarAverage(venue, p.id).toFixed(1);
+                const isHighlighted = parseFloat(avg) >= 4.0;
+                html += `
+                    <div class="diagnostic-metric ${isHighlighted ? 'v-active' : ''}" id="diag-metric-${p.id}">
+                        <h5>${p.name}</h5>
+                        <p id="diag-val-${p.id}">${avg}</p>
+                    </div>
+                `;
+            });
+            diagGrid.innerHTML = html;
+        }
+
+        // ================= SCORECARD DETAILED EDITOR ACTIONS =================
+        function openScorecard(venueId) {
+            selectedVenueId = venueId;
+            const venue = venues.find(v => v.id === venueId);
+            if (!venue) return;
+
+            // Transition UI View - Hide Header Navigation elements for editor layout focus
+            document.getElementById("exec-view").style.display = "none";
+            document.getElementById("scorecard-view").style.display = "flex";
+            document.getElementById("editor-title").innerHTML = `${venue.name} <span style="color:#00e5ff; font-size:20px; font-weight:600;">[Audit Workspace]</span>`;
+
+            // Build evaluation matrix dynamically based on active Criteria Schema
+            renderEditorMatrix(venue);
+            recalculateEditorScores(venue);
+        }
+
+        function showDashboard() {
+            selectedVenueId = null;
+            document.getElementById("scorecard-view").style.display = "none";
+            document.getElementById("exec-view").style.display = "flex";
+            switchMainTab(currentTab);
+        }
+
+        // Live scoring update handler (Rule 3 protected writes)
+        function updateVenueScore(criteriaId, value) {
+            const venue = venues.find(x => x.id === selectedVenueId); if (!venue) return;
+            if (!venue.scores) venue.scores = {};
+            venue.scores[criteriaId] = parseInt(value); 
+            saveToLocalStorage(); 
+            recalculateEditorScores(venue); 
+            triggerSaveAlert();
+        }
+
+        function updateVenueNote(criteriaId, value) {
+            const venue = venues.find(x => x.id === selectedVenueId); if (!venue) return;
+            if (!venue.notes) venue.notes = {};
+            venue.notes[criteriaId] = value; 
+            saveToLocalStorage(); 
+            triggerSaveAlert();
+        }
+
+        function triggerSaveAlert() {
+            const a = document.getElementById("editor-alert"); a.style.display = "block"; setTimeout(() => a.style.display = "none", 2000);
+        }
+
+        function recalculateEditorScores(v) {
+            renderEditorTotals(v);
+            renderEditorDiagnostics(v);
+
+            const agg = calculateAggregateScore(v);
+            const maxAggregateScore = getMaxAggregateScore();
+            document.getElementById("editor-total").innerHTML = `${agg} <span>/ ${maxAggregateScore} MAX</span>`;
+
+            const computed = calculateArchetype(v);
+            const badge = document.getElementById("diagnostic-active-badge");
+            badge.innerText = computed.name; badge.className = `archetype-tag ${computed.name.toLowerCase().split(' ')[1]}`;
+            document.getElementById("diag-matched-rule").innerText = computed.rule;
+
+            // Check dynamic Redline trigger elements to animate warnings if triggered
+            criteriaSchema.forEach(p => {
+                p.items.forEach(item => {
+                    const indicator = document.getElementById(`flag-${item.id}`);
+                    if (indicator) {
+                        const score = (v.scores && v.scores[item.id] !== undefined) ? v.scores[item.id] : 3;
+                        if (score < 3) {
+                            indicator.className = "redline-indicator active";
+                        } else {
+                            indicator.className = "redline-indicator";
+                        }
+                    }
+                });
+            });
+        }
+
+        function openAddVenueModal() { document.getElementById("add-venue-modal").style.display = "flex"; }
+        function closeAddVenueModal() { document.getElementById("add-venue-modal").style.display = "none"; }
+
+        function submitAddVenue() {
+            const name = document.getElementById("new-venue-name").value.trim();
+            const notes = document.getElementById("new-venue-notes").value.trim();
+            if(!name) return;
+
+            const id = name.toLowerCase().replace(/[^a-z0-9]/g, "_");
+            if(venues.some(x => x.id === id)) return;
+
+            let scores = {};
+            let notesObj = {};
+            criteriaSchema.forEach(p => {
+                p.items.forEach(item => {
+                    scores[item.id] = 3;
+                    notesObj[item.id] = "";
+                });
+            });
+
+            if (criteriaSchema[0] && criteriaSchema[0].items[0]) {
+                notesObj[criteriaSchema[0].items[0].id] = notes;
+            }
+
+            const obj = { id, name, scores, notes: notesObj };
+            venues.push(obj); saveToLocalStorage(); switchMainTab('portfolio'); openScorecard(id);
+        }
+
+        // ================= SCHEMA MODIFICATION ACTIONS =================
+        function openPillarModal(mode, pillarId = null) {
+            activePillarModalMode = mode;
+            editingPillarId = pillarId;
+
+            const title = document.getElementById("pillar-modal-title");
+            const nameInput = document.getElementById("pillar-name");
+            const ownerInput = document.getElementById("pillar-owner");
+            const iconInput = document.getElementById("pillar-icon");
+
+            if (mode === 'add') {
+                title.innerText = "Create Evaluation Pillar";
+                nameInput.value = "";
+                ownerInput.value = "";
+                iconInput.value = "";
+            } else {
+                title.innerText = "Edit Evaluation Pillar";
+                const p = criteriaSchema.find(x => x.id === pillarId);
+                if (p) {
+                    nameInput.value = p.name;
+                    ownerInput.value = p.owner || "";
+                    iconInput.value = p.icon || "";
+                }
+            }
+            document.getElementById("pillar-modal").style.display = "flex";
+        }
+
+        function closePillarModal() {
+            document.getElementById("pillar-modal").style.display = "none";
+        }
+
+        function submitPillar() {
+            const name = document.getElementById("pillar-name").value.trim();
+            const owner = document.getElementById("pillar-owner").value.trim() || "CCO";
+            const icon = document.getElementById("pillar-icon").value.trim() || "fa-folder";
+
+            if (!name) return;
+
+            if (activePillarModalMode === 'add') {
+                const newId = "p" + Date.now();
+                criteriaSchema.push({ id: newId, name, owner, icon, items: [] });
+            } else {
+                const p = criteriaSchema.find(x => x.id === editingPillarId);
+                if (p) {
+                    p.name = name;
+                    p.owner = owner;
+                    p.icon = icon;
+                }
+            }
+
+            saveCriteriaSchema();
+            closePillarModal();
+            renderCriteriaManager();
+        }
+
+        function openCriteriaModal(mode, pillarId, criteriaId = null) {
+            activeCriteriaModalMode = mode;
+            criteriaParentPillarId = pillarId;
+            editingCriteriaId = criteriaId;
+
+            const title = document.getElementById("criteria-modal-title");
+            const titleInput = document.getElementById("criteria-title-input");
+            const descInput = document.getElementById("criteria-desc-input");
+            const redlineInput = document.getElementById("criteria-redline");
+            const redlineLabelInput = document.getElementById("criteria-redline-label");
+            const redlineGroup = document.getElementById("criteria-redline-label-group");
+
+            if (mode === 'add') {
+                title.innerText = "Create Evaluation Criterion";
+                titleInput.value = "";
+                descInput.value = "";
+                redlineInput.checked = false;
+                redlineLabelInput.value = "";
+                redlineGroup.style.display = "none";
+            } else {
+                title.innerText = "Edit Evaluation Criterion";
+                const p = criteriaSchema.find(x => x.id === pillarId);
+                if (p) {
+                    const item = p.items.find(x => x.id === criteriaId);
+                    if (item) {
+                        titleInput.value = item.title;
+                        descInput.value = item.desc;
+                        redlineInput.checked = item.redline || false;
+                        redlineLabelInput.value = item.redlineLabel || "";
+                        redlineGroup.style.display = item.redline ? "flex" : "none";
+                    }
+                }
+            }
+            document.getElementById("criteria-modal").style.display = "flex";
+        }
+
+        function closeCriteriaModal() {
+            document.getElementById("criteria-modal").style.display = "none";
+        }
+
+        function submitCriteria() {
+            const title = document.getElementById("criteria-title-input").value.trim();
+            const desc = document.getElementById("criteria-desc-input").value.trim();
+            const redline = document.getElementById("criteria-redline").checked;
+            const redlineLabel = document.getElementById("criteria-redline-label").value.trim() || "Red Line";
+
+            if (!title) return;
+
+            const p = criteriaSchema.find(x => x.id === criteriaParentPillarId);
+            if (!p) return;
+
+            if (activeCriteriaModalMode === 'add') {
+                const newId = "c" + Date.now();
+                p.items.push({ id: newId, title, desc, redline, redlineLabel });
+
+                // Seed baseline scores
+                venues.forEach(v => {
+                    if (!v.scores) v.scores = {};
+                    if (!v.notes) v.notes = {};
+                    v.scores[newId] = 3;
+                    v.notes[newId] = "";
+                });
+                saveToLocalStorage();
+            } else {
+                const item = p.items.find(x => x.id === editingCriteriaId);
+                if (item) {
+                    item.title = title;
+                    item.desc = desc;
+                    item.redline = redline;
+                    item.redlineLabel = redlineLabel;
+                }
+            }
+
+            saveCriteriaSchema();
+            closeCriteriaModal();
+            renderCriteriaManager();
+        }
+
+        // ================= DELETE CONFIRMATION PROCESS =================
+        function deleteVenue(id) {
+            venueIdToDelete = id;
+            const venue = venues.find(v => v.id === id);
+            if (!venue) return;
+            document.getElementById("delete-venue-name").innerText = venue.name;
+            document.getElementById("delete-confirm-modal").style.display = "flex";
+        }
+
+        function closeDeleteModal() {
+            document.getElementById("delete-confirm-modal").style.display = "none";
+            venueIdToDelete = null;
+        }
+
+        function confirmDeleteVenue() {
+            if (!venueIdToDelete) return;
+            venues = venues.filter(v => v.id !== venueIdToDelete);
+            saveToLocalStorage();
+            closeDeleteModal();
+            renderDashboard();
+        }
+
+        function deletePillar(id) {
+            pillarIdToDelete = id;
+            const p = criteriaSchema.find(x => x.id === id);
+            if (!p) return;
+
+            let warning = "";
+            if (["p1", "p2", "p3", "p4"].includes(id)) {
+                warning = "<br><span style='color:#ef4444; font-weight:700;'>WARNING: This is a Core standard pillar. Deleting it may alter standard archetype formulas.</span>";
+            }
+
+            document.getElementById("delete-pillar-name").innerHTML = p.name + warning;
+            document.getElementById("pillar-delete-confirm-modal").style.display = "flex";
+        }
+
+        function closePillarDeleteModal() {
+            document.getElementById("pillar-delete-confirm-modal").style.display = "none";
+            pillarIdToDelete = null;
+        }
+
+        function confirmDeletePillar() {
+            if (!pillarIdToDelete) return;
+            const p = criteriaSchema.find(x => x.id === pillarIdToDelete);
+            if (p) {
+                p.items.forEach(item => {
+                    venues.forEach(v => {
+                        if (v.scores) delete v.scores[item.id];
+                        if (v.notes) delete v.notes[item.id];
+                    });
+                });
+            }
+
+            criteriaSchema = criteriaSchema.filter(x => x.id !== pillarIdToDelete);
+            saveCriteriaSchema();
+            saveToLocalStorage();
+            closePillarDeleteModal();
+            renderCriteriaManager();
+        }
+
+        function deleteCriteria(pillarId, criteriaId) {
+            criteriaParentPillarIdToDelete = pillarId;
+            criteriaIdToDelete = criteriaId;
+
+            const p = criteriaSchema.find(x => x.id === pillarId);
+            if (!p) return;
+            const item = p.items.find(x => x.id === criteriaId);
+            if (!item) return;
+
+            document.getElementById("delete-criteria-name").innerText = item.title;
+            document.getElementById("criteria-delete-confirm-modal").style.display = "flex";
+        }
+
+        function closeCriteriaDeleteModal() {
+            document.getElementById("criteria-delete-confirm-modal").style.display = "none";
+            criteriaParentPillarIdToDelete = null;
+            criteriaIdToDelete = null;
+        }
+
+        function confirmDeleteCriteria() {
+            if (!criteriaParentPillarIdToDelete || !criteriaIdToDelete) return;
+            const p = criteriaSchema.find(x => x.id === criteriaParentPillarIdToDelete);
+            if (p) {
+                p.items = p.items.filter(x => x.id !== criteriaIdToDelete);
+                venues.forEach(v => {
+                    if (v.scores) delete v.scores[criteriaIdToDelete];
+                    if (v.notes) delete v.notes[criteriaIdToDelete];
+                });
+                saveCriteriaSchema();
+                saveToLocalStorage();
+            }
+            closeCriteriaDeleteModal();
+            renderCriteriaManager();
+        }
+    </script>
+</body>
+</html>
