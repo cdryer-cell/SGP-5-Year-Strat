@@ -436,6 +436,32 @@
             gap: 20px;
         }
 
+        /* CUSTOM SLIDER STYLING */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            outline: none;
+            transition: background 0.3s;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #ccff00;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(204, 255, 0, 0.5);
+            transition: transform 0.1s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
         @keyframes slideIn {
             from { transform: translateY(100px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
@@ -488,10 +514,29 @@
 
             <!-- PORTFOLIO CONTENT (TAB 1) -->
             <div id="portfolio-tab-content" style="display: flex; flex-direction: column; gap: 30px;">
+                
+                <!-- NEW COLLAPSIBLE WEIGHTING CONFIGURATION CONTROLS -->
+                <div id="weighting-settings-panel" style="background-color: #161d2a; border: 1px solid rgba(255, 255, 255, 0.05); padding: 20px; display: flex; flex-direction: column; gap: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <h4 style="font-size: 14px; color: #ccff00; letter-spacing: 0.5px; margin: 0;"><i class="fa-solid fa-scale-balanced"></i> Dynamic Portfolio Weighting</h4>
+                            <span style="font-size: 12px; color: #94a3b8;">Adjust the relative importance of each pillar on the overall 100-point normalized index.</span>
+                        </div>
+                        <!-- Toggle Button -->
+                        <button id="btn-toggle-weighting" class="filter-btn" style="margin: 0; font-family: 'Outfit';" onclick="toggleWeightingSystem()">
+                            Weighting: OFF
+                        </button>
+                    </div>
+                    
+                    <div id="weighting-sliders-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; opacity: 0.5; pointer-events: none; transition: all 0.3s ease;">
+                        <!-- Sliders generated dynamically in JS to support custom dynamic pillars -->
+                    </div>
+                </div>
+
                 <div class="kpi-row">
                     <div class="kpi-card accent-volt">
                         <span class="kpi-label">Average Portfolio Score</span>
-                        <div class="kpi-value" id="kpi-avg-score">0.0 <span>/ 50 Max</span></div>
+                        <div class="kpi-value" id="kpi-avg-score">0.0 <span>/ 100 Max</span></div>
                     </div>
                     <div class="kpi-card accent-cyan">
                         <span class="kpi-label">Strategic Assets Scored</span>
@@ -538,7 +583,7 @@
                     <p style="color:#ffffff; font-size:15px; margin-bottom:0;">
                         Host venues are mapped to strategic roles programmatically based on 4 scoring vectors: 
                         <strong>Commercial Yield (CY)</strong>, <strong>Sailing Conditions (SC)</strong>, <strong>Audience Scale (AG)</strong>, and <strong>Partner Alignment (PA)</strong>. 
-                        Each vector represents the average (1-5 scale) calculated from SME scorecard metrics.
+                        Each vector represents the average (1-10 scale) calculated from SME scorecard metrics.
                     </p>
                 </div>
 
@@ -550,7 +595,7 @@
                                 <span class="archetype-tag anchor">Commercial Anchor</span>
                                 <h3 style="margin-top:10px;">The Revenue Bedrock</h3>
                             </div>
-                            <span class="formula-badge">CY &ge; 4.0 AND PA &ge; 3.5</span>
+                            <span class="formula-badge">CY &ge; 8.0 AND PA &ge; 7.0</span>
                         </div>
                         <p style="margin-bottom: 10px;"><strong>Strategic Role:</strong> Maximizes direct host city fees, public box office ticket volume, and premium luxury hospitality. Supports and subsidizes expansion operations.</p>
                         <p style="margin-bottom: 15px;"><strong>Primary Metric:</strong> Net Profit Margin | <strong>Target ROI:</strong> Profit Center</p>
@@ -567,7 +612,7 @@
                                 <span class="archetype-tag flagship">Audience Flagship</span>
                                 <h3 style="margin-top:10px;">The Global Content Factory</h3>
                             </div>
-                            <span class="formula-badge">SC &ge; 4.0 AND AG &ge; 4.0</span>
+                            <span class="formula-badge">SC &ge; 8.0 AND AG &ge; 8.0</span>
                         </div>
                         <p style="margin-bottom: 10px;"><strong>Strategic Role:</strong> Leverages exceptional natural foiling winds and mass attendance capacity to generate premier broadcast spectacle and compounded database footprints.</p>
                         <p style="margin-bottom: 15px;"><strong>Primary Metric:</strong> Global Reach & Media Value | <strong>Target ROI:</strong> Breakeven to Profit</p>
@@ -584,7 +629,7 @@
                                 <span class="archetype-tag catalyst">Commercial Catalyst</span>
                                 <h3 style="margin-top:10px;">The B2B Partnership Incubator</h3>
                             </div>
-                            <span class="formula-badge">PA &ge; 4.5 AND SC &le; 3.8</span>
+                            <span class="formula-badge">PA &ge; 9.0 AND SC &le; 7.6</span>
                         </div>
                         <p style="margin-bottom: 10px;"><strong>Strategic Role:</strong> Positioned inside major commercial capitals to host tier-1 global sponsors and close multi-million dollar corporate enterprise agreements.</p>
                         <p style="margin-bottom: 15px;"><strong>Primary Metric:</strong> Partnership Pipeline Value | <strong>Target ROI:</strong> Indirect Multiplier</p>
@@ -601,7 +646,7 @@
                                 <span class="archetype-tag footprint">Strategic Footprint</span>
                                 <h3 style="margin-top:10px;">The High-Potential Trial</h3>
                             </div>
-                            <span class="formula-badge">CY &lt; 3.0 (OR Fallback)</span>
+                            <span class="formula-badge">CY &lt; 6.0 (OR Fallback)</span>
                         </div>
                         <p style="margin-bottom: 10px;"><strong>Strategic Role:</strong> Short-term pilot events to test emerging market appetite, establish baseline regional awareness, and pilot high-performance marine viability.</p>
                         <p style="margin-bottom: 15px;"><strong>Primary Metric:</strong> Market Conversion Rate | <strong>Target ROI:</strong> 4-Year Maturity Mandate</p>
@@ -639,7 +684,7 @@
                     <button class="back-btn" onclick="showDashboard()"><i class="fa-solid fa-arrow-left"></i> Return to Summary</button>
                     <h1 id="editor-title" style="margin-top: 15px; font-size: 32px;">Host Venue Evaluation</h1>
                 </div>
-                <div class="alert-box" id="editor-alert">Saved to browser local storage.</div>
+                <div class="alert-box" id="editor-alert">Saved to database.</div>
             </div>
 
             <div class="diagnostic-card">
@@ -661,7 +706,7 @@
                     <tr>
                         <th style="width: 20%;">Evaluation Pillar</th>
                         <th style="width: 35%;">Sub-Category Criteria Details</th>
-                        <th style="width: 12%; text-align: center;">Score (1-5)</th>
+                        <th style="width: 12%; text-align: center;">Score (1-10)</th>
                         <th style="width: 15%; text-align: center;">Red Line Check</th>
                         <th style="width: 18%;">SME Context / Data Source</th>
                     </tr>
@@ -677,7 +722,7 @@
                 </div>
                 <div style="text-align: right;">
                     <span class="total-label" style="font-size: 14px;">Calculated Aggregate Score</span>
-                    <div class="total-display" id="editor-total">0 <span>/ 50 MAX</span></div>
+                    <div class="total-display" id="editor-total">0 <span>/ 100 MAX</span></div>
                 </div>
             </div>
         </div>
@@ -819,10 +864,7 @@
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
         // ENTER YOUR SUPABASE CREDS HERE TO ACTIVATE MULTI-USER SYNCING SECURELY:
-        // Paste your Project URL into SUPABASE_URL (Instructions: Settings Cog -> API -> Project URL)
         const SUPABASE_URL = "https://pwybjuszfwsahbhufocl.supabase.co"; 
-        
-        // Your Publishable key is copied from your screenshot below:
         const SUPABASE_ANON_KEY = "sb_publishable_JlnG2ctJnrgAki5TqqohIw_f2wRNpc6";
 
         const isSupabaseConfigured = SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_ANON_KEY !== "YOUR_SUPABASE_ANON_KEY";
@@ -835,6 +877,8 @@
         // ================= DATA STATE ENGINE =================
         let venues = [];
         let criteriaSchema = [];
+        let useWeighting = false;
+        let pillarWeights = {};
         let activeFilter = 'all';
         let showRedlinesOnly = false;
         let selectedVenueId = null;
@@ -899,19 +943,19 @@
         ];
 
         const defaultSeedData = [
-            { id: "dubai", name: "Dubai", p1_1: 5, p1_2: 5, p1_3: 5, p2_1: 2, p2_2: 4, p2_3: 4, p3_1: 4, p3_2: 4, p4_1: 4, p4_2: 4, n1_1: "Multi-year commercial deal backed by Dubai Sports Council.", n2_1: "Erratic summer light wind risks, but highly reliable winter conditions." },
-            { id: "abu_dhabi", name: "Abu Dhabi", p1_1: 5, p1_2: 4, p1_3: 5, p2_1: 2, p2_2: 4, p2_3: 4, p3_1: 4, p3_2: 4, p4_1: 4, p4_2: 4, n1_1: "Premium destination fee secured via Abu Dhabi Sports Council.", n2_1: "Wind drops in late spring frames." },
-            { id: "geneva", name: "Geneva", p1_1: 4, p1_2: 5, p1_3: 4, p2_1: 3, p2_2: 4, p2_3: 3, p3_1: 4, p3_2: 4, p4_1: 4, p4_2: 4, n1_1: "High Swiss private capital indexing.", n2_1: "Predictable lake breeze parameters." },
-            { id: "portsmouth", name: "Portsmouth", p1_1: 3, p1_2: 4, p1_3: 3, p2_1: 4, p2_2: 4, p2_3: 3, p3_1: 5, p3_2: 5, p4_1: 3, p4_2: 3, n1_1: "Massive spectator turnout history.", n2_1: "Solid English Channel breeze layout." },
-            { id: "perth", name: "Perth", p1_1: 3, p1_2: 4, p1_3: 3, p2_1: 5, p2_2: 4, p2_3: 4, p3_1: 5, p3_2: 4, p4_1: 3, p4_2: 3, n1_1: "Tourism council backing asset.", n2_1: "Guaranteed Fremantle Doctor high wind vectors." },
-            { id: "bermuda", name: "Bermuda", p1_1: 3, p1_2: 3, p1_3: 3, p2_1: 5, p2_2: 5, p2_3: 4, p3_1: 4, p3_2: 3, p4_1: 3, p4_2: 3, n1_1: "Deep historical structural alignment.", n2_1: "Flawless technical foiling playground." },
-            { id: "valencia", name: "Valencia", p1_1: 3, p1_2: 4, p1_3: 3, p2_1: 4, p2_2: 5, p2_3: 4, p3_1: 5, p3_2: 4, p4_1: 3, p4_2: 3, n1_1: "Tourism board deployment model.", n2_1: "Premium technical infrastructure." },
-            { id: "halifax", name: "Halifax", p1_1: 3, p1_2: 5, p1_3: 3, p2_1: 4, p2_2: 4, p2_3: 4, p3_1: 5, p3_2: 4, p4_1: 3, p4_2: 3, n1_1: "Unprecedented regional ticket footprint.", n2_1: "Natural narrow channel draft advantages." },
-            { id: "sassnitz", name: "Sassnitz", p1_1: 3, p1_2: 4, p1_3: 3, p2_1: 4, p2_2: 4, p2_3: 3, p3_1: 4, p3_2: 4, p4_1: 3, p4_2: 3, n1_1: "German demographic anchor stop.", n2_1: "Open water sea breeze properties." },
-            { id: "rio", name: "Rio", p1_1: 2, p1_2: 3, p1_3: 3, p2_1: 3, p2_2: 5, p2_3: 3, p3_1: 4, p3_2: 3, p4_1: 3, p4_2: 3, n1_1: "Investment phase development.", n2_1: "Highly visual broadcast parameters." },
-            { id: "hong_kong", name: "Hong Kong", p1_1: 2, p1_2: 3, p1_3: 4, p2_1: 3, p2_2: 5, p2_3: 3, p3_1: 4, p3_2: 4, p4_1: 4, p4_2: 4, n1_1: "Strategic tier-1 economic capital point.", n2_1: "Iconic harbor media background." },
-            { id: "new_york", name: "New York", p1_1: 4, p1_2: 4, p1_3: 4, p2_1: 3, p2_2: 5, p2_3: 2, p3_1: 5, p3_2: 5, p4_1: 5, p4_2: 5, n1_1: "Unmatched B2B hospitality epicenter.", n2_1: "Hudson currents present complex delivery blocks." },
-            { id: "san_francisco", name: "San Francisco", p1_1: 3, p1_2: 4, p1_3: 4, p2_1: 5, p2_2: 5, p2_3: 3, p3_1: 5, p3_2: 5, p4_1: 5, p4_2: 5, n1_1: "Premium commercial enterprise anchor.", n2_1: "Reliable structural natural wind machine." }
+            { id: "dubai", name: "Dubai", p1_1: 10, p1_2: 10, p1_3: 10, p2_1: 4, p2_2: 8, p2_3: 8, p3_1: 8, p3_2: 8, p4_1: 8, p4_2: 8, n1_1: "Multi-year commercial deal backed by Dubai Sports Council.", n2_1: "Erratic summer light wind risks, but highly reliable winter conditions." },
+            { id: "abu_dhabi", name: "Abu Dhabi", p1_1: 10, p1_2: 8, p1_3: 10, p2_1: 4, p2_2: 8, p2_3: 8, p3_1: 8, p3_2: 8, p4_1: 8, p4_2: 8, n1_1: "Premium destination fee secured via Abu Dhabi Sports Council.", n2_1: "Wind drops in late spring frames." },
+            { id: "geneva", name: "Geneva", p1_1: 8, p1_2: 10, p1_3: 8, p2_1: 6, p2_2: 8, p2_3: 6, p3_1: 8, p3_2: 8, p4_1: 8, p4_2: 8, n1_1: "High Swiss private capital indexing.", n2_1: "Predictable lake breeze parameters." },
+            { id: "portsmouth", name: "Portsmouth", p1_1: 6, p1_2: 8, p1_3: 6, p2_1: 8, p2_2: 8, p2_3: 6, p3_1: 10, p3_2: 10, p4_1: 6, p4_2: 6, n1_1: "Massive spectator turnout history.", n2_1: "Solid English Channel breeze layout." },
+            { id: "perth", name: "Perth", p1_1: 6, p1_2: 8, p1_3: 6, p2_1: 10, p2_2: 8, p2_3: 8, p3_1: 10, p3_2: 8, p4_1: 6, p4_2: 6, n1_1: "Tourism council backing asset.", n2_1: "Guaranteed Fremantle Doctor high wind vectors." },
+            { id: "bermuda", name: "Bermuda", p1_1: 6, p1_2: 6, p1_3: 6, p2_1: 10, p2_2: 10, p2_3: 8, p3_1: 8, p3_2: 6, p4_1: 6, p4_2: 6, n1_1: "Deep historical structural alignment.", n2_1: "Flawless technical foiling playground." },
+            { id: "valencia", name: "Valencia", p1_1: 6, p1_2: 8, p1_3: 6, p2_1: 8, p2_2: 10, p2_3: 8, p3_1: 10, p3_2: 8, p4_1: 6, p4_2: 6, n1_1: "Tourism board deployment model.", n2_1: "Premium technical infrastructure." },
+            { id: "halifax", name: "Halifax", p1_1: 6, p1_2: 10, p1_3: 6, p2_1: 8, p2_2: 8, p2_3: 8, p3_1: 10, p3_2: 8, p4_1: 6, p4_2: 6, n1_1: "Unprecedented regional ticket footprint.", n2_1: "Natural narrow channel draft advantages." },
+            { id: "sassnitz", name: "Sassnitz", p1_1: 6, p1_2: 8, p1_3: 6, p2_1: 8, p2_2: 8, p2_3: 6, p3_1: 8, p3_2: 8, p4_1: 6, p4_2: 6, n1_1: "German demographic anchor stop.", n2_1: "Open water sea breeze properties." },
+            { id: "rio", name: "Rio", p1_1: 4, p1_2: 6, p1_3: 6, p2_1: 6, p2_2: 10, p2_3: 6, p3_1: 8, p3_2: 6, p4_1: 6, p4_2: 6, n1_1: "Investment phase development.", n2_1: "Highly visual broadcast parameters." },
+            { id: "hong_kong", name: "Hong Kong", p1_1: 4, p1_2: 6, p1_3: 8, p2_1: 6, p2_2: 10, p2_3: 6, p3_1: 8, p3_2: 8, p4_1: 8, p4_2: 8, n1_1: "Strategic tier-1 economic capital point.", n2_1: "Iconic harbor media background." },
+            { id: "new_york", name: "New York", p1_1: 8, p1_2: 8, p1_3: 8, p2_1: 6, p2_2: 10, p2_3: 4, p3_1: 10, p3_2: 10, p4_1: 10, p4_2: 10, n1_1: "Unmatched B2B hospitality epicenter.", n2_1: "Hudson currents present complex delivery blocks." },
+            { id: "san_francisco", name: "San Francisco", p1_1: 3, p1_2: 4, p1_3: 4, p2_1: 10, p2_2: 10, p2_3: 6, p3_1: 10, p3_2: 10, p4_1: 10, p4_2: 10, n1_1: "Premium commercial enterprise anchor.", n2_1: "Reliable structural natural wind machine." }
         ];
 
         window.onload = async function() {
@@ -972,7 +1016,7 @@
                         let notes = {};
                         criteriaSchema.forEach(p => {
                             p.items.forEach(item => {
-                                scores[item.id] = v[item.id] !== undefined ? v[item.id] : 3;
+                                scores[item.id] = v[item.id] !== undefined ? v[item.id] : 6;
                                 let noteKey = item.id.replace('p', 'n');
                                 notes[item.id] = v[noteKey] !== undefined ? v[noteKey] : "";
                             });
@@ -993,6 +1037,39 @@
                 } else {
                     venues = venueData;
                 }
+
+                // 3. Get or seed weights configuration
+                const { data: weightsData, error: weightsError } = await supabase
+                    .from('portfolio_config')
+                    .select('data')
+                    .eq('id', 'weights_config')
+                    .maybeSingle();
+
+                if (weightsError) throw weightsError;
+
+                if (!weightsData) {
+                    useWeighting = false;
+                    pillarWeights = {};
+                    criteriaSchema.forEach(p => {
+                        pillarWeights[p.id] = 100;
+                    });
+                    await supabase.from('portfolio_config').insert({ id: 'weights_config', data: { useWeighting, pillarWeights } });
+                } else {
+                    useWeighting = weightsData.data.useWeighting;
+                    pillarWeights = weightsData.data.pillarWeights;
+                    criteriaSchema.forEach(p => {
+                        if (pillarWeights[p.id] === undefined) {
+                            pillarWeights[p.id] = 100;
+                        }
+                    });
+                }
+
+                updateWeightingUI();
+                renderWeightingSliders();
+
+                // Auto-scale 1-5 legacy database scores dynamically to 1-10 on load
+                scaleLegacyDatabases();
+
             } catch (e) {
                 console.error("Supabase connection error. Falling back to local storage:", e);
                 migrateOrSeedData();
@@ -1000,11 +1077,41 @@
             }
         }
 
+        // Auto-scale legacy 5-point scores to new 10-point scale on startup
+        function scaleLegacyDatabases() {
+            let updated = false;
+            venues.forEach(v => {
+                if (v.scores) {
+                    let hasFiveScale = false;
+                    Object.keys(v.scores).forEach(key => {
+                        if (key !== "_isTenPointScaled" && v.scores[key] <= 5 && !v.scores._isTenPointScaled) {
+                            hasFiveScale = true;
+                            v.scores[key] = Math.min(10, v.scores[key] * 2);
+                        }
+                    });
+                    if (hasFiveScale) {
+                        v.scores._isTenPointScaled = true;
+                        updated = true;
+                    }
+                }
+            });
+            if (updated) {
+                saveToLocalStorage();
+                if (isSupabaseConfigured) {
+                    venues.forEach(async (v) => {
+                        await supabase.from('venues').update({ scores: v.scores }).eq('id', v.id);
+                    });
+                }
+            }
+        }
+
         // ================= PORTFOLIO SHARING ENGINE =================
         function generateShareLink() {
             const state = {
                 venues: venues,
-                schema: criteriaSchema
+                schema: criteriaSchema,
+                useWeighting: useWeighting,
+                pillarWeights: pillarWeights
             };
             try {
                 const json = JSON.stringify(state);
@@ -1035,9 +1142,12 @@
                     if (state && state.venues && state.schema) {
                         venues = state.venues;
                         criteriaSchema = state.schema;
+                        if (state.useWeighting !== undefined) useWeighting = state.useWeighting;
+                        if (state.pillarWeights !== undefined) pillarWeights = state.pillarWeights;
                         
                         saveToLocalStorage();
                         saveCriteriaSchema();
+                        saveWeightsConfig();
                         
                         window.history.replaceState(null, null, window.location.pathname);
                         setTimeout(() => {
@@ -1084,7 +1194,7 @@
                         let notes = {};
                         criteriaSchema.forEach(p => {
                             p.items.forEach(item => {
-                                scores[item.id] = v[item.id] !== undefined ? v[item.id] : 3;
+                                scores[item.id] = v[item.id] !== undefined ? v[item.id] * 2 : 6;
                                 let noteKey = item.id.replace('p', 'n');
                                 notes[item.id] = v[noteKey] !== undefined ? v[noteKey] : "";
                             });
@@ -1106,7 +1216,7 @@
                     let notes = {};
                     criteriaSchema.forEach(p => {
                         p.items.forEach(item => {
-                            scores[item.id] = v[item.id] !== undefined ? v[item.id] : 3;
+                            scores[item.id] = v[item.id] !== undefined ? v[item.id] : 6;
                             let noteKey = item.id.replace('p', 'n');
                             notes[item.id] = v[noteKey] !== undefined ? v[noteKey] : "";
                         });
@@ -1120,6 +1230,32 @@
                 });
                 saveToLocalStorage();
             }
+
+            let storedUseWeighting = localStorage.getItem("sailgp_use_weighting");
+            if (storedUseWeighting !== null) {
+                useWeighting = JSON.parse(storedUseWeighting);
+            } else {
+                useWeighting = false;
+            }
+
+            let storedPillarWeights = localStorage.getItem("sailgp_pillar_weights");
+            if (storedPillarWeights) {
+                pillarWeights = JSON.parse(storedPillarWeights);
+            } else {
+                pillarWeights = {};
+                criteriaSchema.forEach(p => {
+                    pillarWeights[p.id] = 100;
+                });
+            }
+            criteriaSchema.forEach(p => {
+                if (pillarWeights[p.id] === undefined) {
+                    pillarWeights[p.id] = 100;
+                }
+            });
+
+            updateWeightingUI();
+            renderWeightingSliders();
+            scaleLegacyDatabases();
         }
 
         function saveToLocalStorage() {
@@ -1131,6 +1267,19 @@
                 await supabase.from('portfolio_config').upsert({ id: 'criteria_schema', data: criteriaSchema });
             } else {
                 localStorage.setItem("sailgp_criteria_schema", JSON.stringify(criteriaSchema));
+            }
+        }
+
+        async function saveWeightsConfig() {
+            if (isSupabaseConfigured) {
+                try {
+                    await supabase.from('portfolio_config').upsert({ id: 'weights_config', data: { useWeighting, pillarWeights } });
+                } catch(e) {
+                    console.error("Cloud weights save failure:", e);
+                }
+            } else {
+                localStorage.setItem("sailgp_use_weighting", JSON.stringify(useWeighting));
+                localStorage.setItem("sailgp_pillar_weights", JSON.stringify(pillarWeights));
             }
         }
 
@@ -1158,6 +1307,8 @@
                 contentPortfolio.style.display = "flex";
                 renderTableHeaders();
                 renderDashboard();
+                renderWeightingSliders();
+                updateWeightingUI();
             } else if (tabId === 'methodology') {
                 btnMethodology.classList.add("active");
                 contentMethodology.style.display = "flex";
@@ -1231,7 +1382,7 @@
             if (!pillar || !pillar.items || pillar.items.length === 0) return 0;
             let total = 0;
             pillar.items.forEach(item => {
-                total += (venue.scores && venue.scores[item.id] !== undefined) ? venue.scores[item.id] : 3;
+                total += (venue.scores && venue.scores[item.id] !== undefined) ? venue.scores[item.id] : 6;
             });
             return total / pillar.items.length;
         }
@@ -1241,8 +1392,8 @@
             criteriaSchema.forEach(p => {
                 p.items.forEach(item => {
                     if (item.redline) {
-                        const score = (v.scores && v.scores[item.id] !== undefined) ? v.scores[item.id] : 3;
-                        if (score < 3) {
+                        const score = (v.scores && v.scores[item.id] !== undefined) ? v.scores[item.id] : 6;
+                        if (score < 6) { // Redline limit triggers below 6 (60%) on the new 10-point scale
                             redlined = true;
                         }
                     }
@@ -1255,7 +1406,7 @@
             let sum = 0;
             criteriaSchema.forEach(p => {
                 p.items.forEach(item => {
-                    sum += (v.scores && v.scores[item.id] !== undefined) ? v.scores[item.id] : 3;
+                    sum += (v.scores && v.scores[item.id] !== undefined) ? v.scores[item.id] : 6;
                 });
             });
             return sum;
@@ -1266,7 +1417,28 @@
             criteriaSchema.forEach(p => {
                 count += p.items.length;
             });
-            return count * 5;
+            return count * 10; // Max possible points is count * 10
+        }
+
+        // Calculates dynamic 100-Point Normalized Score across the venue with Dynamic Weighting
+        function calculateNormalizedScore(v) {
+            if (useWeighting) {
+                let totalWeightedScore = 0;
+                let totalMaxWeighted = 0;
+                criteriaSchema.forEach(p => {
+                    if (p.items && p.items.length > 0) {
+                        const weight = pillarWeights[p.id] !== undefined ? pillarWeights[p.id] : 100;
+                        const avg = getPillarAverage(v, p.id); // Average value out of 10
+                        totalWeightedScore += avg * weight;
+                        totalMaxWeighted += 10 * weight;
+                    }
+                });
+                return totalMaxWeighted > 0 ? Math.round((totalWeightedScore / totalMaxWeighted) * 100) : 0;
+            } else {
+                const rawScore = calculateAggregateScore(v);
+                const maxPossible = getMaxAggregateScore();
+                return maxPossible > 0 ? Math.round((rawScore / maxPossible) * 100) : 0;
+            }
         }
 
         function calculateArchetype(v) {
@@ -1275,10 +1447,11 @@
             const ag = getPillarAverage(v, "p3");
             const pa = getPillarAverage(v, "p4");
 
-            if (pa >= 4.5 && sc <= 3.8) return { name: "Commercial Catalyst", rule: "Enterprise Fit Priority (PA ≥ 4.5) with high harbor technical layers (SC ≤ 3.8)." };
-            if (cy >= 4.0 && pa >= 3.5) return { name: "Commercial Anchor", rule: "Revenue Dominance (CY ≥ 4.0) with strong corporate alignment (PA ≥ 3.5)." };
-            if (sc >= 4.0 && ag >= 4.0) return { name: "Audience Flagship", rule: "Elite Sporting Spectacle (SC ≥ 4.0) matched with scaled consumer volume (AG ≥ 4.0)." };
-            if (cy < 3.0) return { name: "Strategic Footprint", rule: "Development Phase play: Investment-driven baseline metrics (CY < 3.0)." };
+            // Scaled archetype logic criteria threshold boundaries (Multiplied by 2 for the 10-point scale)
+            if (pa >= 9.0 && sc <= 7.6) return { name: "Commercial Catalyst", rule: "Enterprise Fit Priority (PA &ge; 9.0) with high harbor technical layers (SC &le; 7.6)." };
+            if (cy >= 8.0 && pa >= 7.0) return { name: "Commercial Anchor", rule: "Revenue Dominance (CY &ge; 8.0) with strong corporate alignment (PA &ge; 7.0)." };
+            if (sc >= 8.0 && ag >= 8.0) return { name: "Audience Flagship", rule: "Elite Sporting Spectacle (SC &ge; 8.0) matched with scaled consumer volume (AG &ge; 8.0)." };
+            if (cy < 6.0) return { name: "Strategic Footprint", rule: "Development Phase play: Investment-driven baseline metrics (CY &lt; 6.0)." };
             return { name: "Strategic Footprint", rule: "Baseline emerging market deployment framework assignment." };
         }
 
@@ -1292,7 +1465,7 @@
                 case 'status': 
                     return isVenueRedlined(v) ? 1 : 0;
                 case 'score': 
-                    return calculateAggregateScore(v);
+                    return calculateNormalizedScore(v);
                 default: 
                     return getPillarAverage(v, field);
             }
@@ -1316,7 +1489,7 @@
 
             html += `
                 <th id="th-status" onclick="handleSort('status')" class="sortable-header" style="width: 10%; text-align: center;">P&L Status <i class="fa-solid fa-sort sort-icon"></i></th>
-                <th id="th-score" onclick="handleSort('score')" class="sortable-header" style="width: 8%; text-align: center;">Agg Score <i class="fa-solid fa-sort sort-icon"></i></th>
+                <th id="th-score" onclick="handleSort('score')" class="sortable-header" style="width: 8%; text-align: center;">Score (Normalized) <i class="fa-solid fa-sort sort-icon"></i></th>
                 <th style="width: 12%; text-align: center;">Actions</th>
             `;
 
@@ -1337,20 +1510,19 @@
             const tbody = document.getElementById("portfolio-table-body");
             tbody.innerHTML = "";
 
-            let totalPortfolioScore = 0, flaggedVenuesCount = 0, topScore = -1, topVenueName = "--";
-            const maxAggregateScore = getMaxAggregateScore();
+            let totalPortfolioNormalizedScore = 0, flaggedVenuesCount = 0, topScore = -1, topVenueName = "--";
 
             venues.forEach(v => {
-                const agg = calculateAggregateScore(v);
-                totalPortfolioScore += agg;
+                const normalizedScore = calculateNormalizedScore(v);
+                totalPortfolioNormalizedScore += normalizedScore;
                 v.currentArchetype = calculateArchetype(v).name;
                 if (isVenueRedlined(v)) flaggedVenuesCount++;
-                if (agg > topScore) { topScore = agg; topVenueName = v.name; }
+                if (normalizedScore > topScore) { topScore = normalizedScore; topVenueName = v.name; }
             });
 
-            const avgPort = venues.length ? (totalPortfolioScore / venues.length).toFixed(1) : "0.0";
-            document.getElementById("kpi-avg-score").innerHTML = `${avgPort} <span>/ ${maxAggregateScore} Max</span>`;
-            document.getElementById("kpi-top-venue").innerText = venues.length ? `${topVenueName} (${topScore}/${maxAggregateScore})` : "--";
+            const avgPortNormalized = venues.length ? (totalPortfolioNormalizedScore / venues.length).toFixed(1) : "0.0";
+            document.getElementById("kpi-avg-score").innerHTML = `${avgPortNormalized} <span>/ 100 Max</span>`;
+            document.getElementById("kpi-top-venue").innerText = venues.length ? `${topVenueName} (${topScore}/100)` : "--";
             document.getElementById("kpi-redlines").innerHTML = `${flaggedVenuesCount} <span>Flagged</span>`;
             document.getElementById("kpi-scored-count").innerHTML = `${venues.length} <span>Events</span>`;
 
@@ -1380,7 +1552,7 @@
             });
 
             displayed.forEach(v => {
-                const agg = calculateAggregateScore(v);
+                const normalizedAgg = calculateNormalizedScore(v);
                 const isFlag = isVenueRedlined(v);
                 const cls = v.currentArchetype.toLowerCase().split(' ')[1];
 
@@ -1389,7 +1561,7 @@
 
                 criteriaSchema.forEach(p => {
                     const avg = getPillarAverage(v, p.id).toFixed(1);
-                    pillarsHtml += `<td>${renderBar(avg, 5.0)}</td>`;
+                    pillarsHtml += `<td>${renderBar(avg, 10.0)}</td>`; // Rendering progress bar out of 10.0 max
                 });
 
                 row.innerHTML = `
@@ -1397,7 +1569,7 @@
                     <td><span class="archetype-tag ${cls}">${v.currentArchetype}</span></td>
                     ${pillarsHtml}
                     <td style="text-align: center;">${isFlag ? `<span class="badge-redline"><i class="fa-solid fa-triangle-exclamation"></i> Review</span>` : `<span class="badge-pass"><i class="fa-solid fa-circle-check"></i> Pass</span>`}</td>
-                    <td style="text-align: center; font-weight:700; font-size:16px;">${agg} <span style="font-size:11px; color:#94a3b8;">/${maxAggregateScore}</span></td>
+                    <td style="text-align: center; font-weight:700; font-size:16px;">${normalizedAgg} <span style="font-size:11px; color:#94a3b8;">/100</span></td>
                     <td style="text-align: center; white-space: nowrap;">
                         <button class="action-btn" onclick="openScorecard('${v.id}')">Audit</button>
                         <button class="delete-btn" onclick="deleteVenue('${v.id}')"><i class="fa-solid fa-trash-can"></i></button>
@@ -1425,6 +1597,67 @@
                 btn.classList.remove("active");
             }
             renderDashboard();
+        }
+
+        // ================= DYNAMIC PORTFOLIO WEIGHTING CONTROLS =================
+        function renderWeightingSliders() {
+            const container = document.getElementById("weighting-sliders-container");
+            if (!container) return;
+
+            let html = "";
+            criteriaSchema.forEach(p => {
+                const currentWeight = pillarWeights[p.id] !== undefined ? pillarWeights[p.id] : 100;
+                html += `
+                    <div style="display: flex; flex-direction: column; gap: 8px; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 12px 15px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700;">
+                            <span style="color: #ffffff; text-transform: uppercase; font-family: 'Outfit'; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid ${p.icon || 'fa-folder'}"></i> ${p.name}
+                            </span>
+                            <span style="color: #ccff00;" id="weight-lbl-${p.id}">${currentWeight}%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value="${currentWeight}" style="width: 100%; accent-color: #ccff00; cursor: pointer;" 
+                               oninput="updatePillarWeight('${p.id}', this.value)">
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function toggleWeightingSystem() {
+            useWeighting = !useWeighting;
+            saveWeightsConfig();
+            updateWeightingUI();
+            renderDashboard();
+        }
+
+        function updatePillarWeight(pillarId, value) {
+            pillarWeights[pillarId] = parseInt(value);
+            const lbl = document.getElementById(`weight-lbl-${pillarId}`);
+            if (lbl) lbl.innerText = value + "%";
+            saveWeightsConfig();
+            renderDashboard();
+        }
+
+        function updateWeightingUI() {
+            const btn = document.getElementById("btn-toggle-weighting");
+            const sliders = document.getElementById("weighting-sliders-container");
+            if (!btn || !sliders) return;
+
+            if (useWeighting) {
+                btn.innerText = "Weighting: ON";
+                btn.classList.add("active");
+                btn.style.backgroundColor = "#ccff00";
+                btn.style.color = "#0b0e14";
+                sliders.style.opacity = "1";
+                sliders.style.pointerEvents = "auto";
+            } else {
+                btn.innerText = "Weighting: OFF";
+                btn.classList.remove("active");
+                btn.style.backgroundColor = "transparent";
+                btn.style.color = "#ffffff";
+                sliders.style.opacity = "0.5";
+                sliders.style.pointerEvents = "none";
+            }
         }
 
         // ================= DYNAMIC CRITERIA MANAGER SYSTEM =================
@@ -1494,7 +1727,7 @@
                 p.items.forEach((item, index) => {
                     const isRedline = item.redline;
                     const redlineDisplay = isRedline ? `<div class="redline-indicator" id="flag-${item.id}"><i class="fa-solid fa-triangle-exclamation"></i> ${item.redlineLabel || 'Red Line'}</div>` : '--';
-                    const scoreVal = (venue.scores && venue.scores[item.id] !== undefined) ? venue.scores[item.id] : 3;
+                    const scoreVal = (venue.scores && venue.scores[item.id] !== undefined) ? venue.scores[item.id] : 6;
                     const noteVal = (venue.notes && venue.notes[item.id] !== undefined) ? venue.notes[item.id] : "";
 
                     html += `
@@ -1511,11 +1744,16 @@
                             </td>
                             <td>
                                 <select class="score-select" onchange="updateVenueScore('${item.id}', this.value)">
+                                    <option value="10" ${scoreVal === 10 ? 'selected' : ''}>10 - Max</option>
+                                    <option value="9" ${scoreVal === 9 ? 'selected' : ''}>9</option>
+                                    <option value="8" ${scoreVal === 8 ? 'selected' : ''}>8</option>
+                                    <option value="7" ${scoreVal === 7 ? 'selected' : ''}>7</option>
+                                    <option value="6" ${scoreVal === 6 ? 'selected' : ''}>6 - Baseline</option>
                                     <option value="5" ${scoreVal === 5 ? 'selected' : ''}>5</option>
                                     <option value="4" ${scoreVal === 4 ? 'selected' : ''}>4</option>
                                     <option value="3" ${scoreVal === 3 ? 'selected' : ''}>3</option>
                                     <option value="2" ${scoreVal === 2 ? 'selected' : ''}>2</option>
-                                    <option value="1" ${scoreVal === 1 ? 'selected' : ''}>1</option>
+                                    <option value="1" ${scoreVal === 1 ? 'selected' : ''}>1 - Critical</option>
                                 </select>
                             </td>
                             <td style="text-align: center;">${redlineDisplay}</td>
@@ -1552,7 +1790,7 @@
             criteriaSchema.forEach(p => {
                 const avg = getPillarAverage(venue, p.id).toFixed(1);
                 html += `
-                    <div class="total-pill">${p.name} <strong>${avg}</strong></div>
+                    <div class="total-pill">${p.name} <strong>${avg} / 10.0</strong></div>
                 `;
             });
             totalsMeta.innerHTML = html;
@@ -1565,7 +1803,7 @@
             let html = "";
             criteriaSchema.forEach(p => {
                 const avg = getPillarAverage(venue, p.id).toFixed(1);
-                const isHighlighted = parseFloat(avg) >= 4.0;
+                const isHighlighted = parseFloat(avg) >= 8.0; // Scaled highlighted vector threshold to 8.0/10
                 html += `
                     <div class="diagnostic-metric ${isHighlighted ? 'v-active' : ''}" id="diag-metric-${p.id}">
                         <h5>${p.name}</h5>
@@ -1613,6 +1851,7 @@
                 saveToLocalStorage(); 
             }
             recalculateEditorScores(venue); 
+            renderDashboard();
             triggerSaveAlert();
         }
 
@@ -1639,9 +1878,8 @@
             renderEditorTotals(v);
             renderEditorDiagnostics(v);
 
-            const agg = calculateAggregateScore(v);
-            const maxAggregateScore = getMaxAggregateScore();
-            document.getElementById("editor-total").innerHTML = `${agg} <span>/ ${maxAggregateScore} MAX</span>`;
+            const normalizedAgg = calculateNormalizedScore(v);
+            document.getElementById("editor-total").innerHTML = `${normalizedAgg} <span>/ 100 MAX</span>`;
 
             const computed = calculateArchetype(v);
             const badge = document.getElementById("diagnostic-active-badge");
@@ -1653,8 +1891,8 @@
                 p.items.forEach(item => {
                     const indicator = document.getElementById(`flag-${item.id}`);
                     if (indicator) {
-                        const score = (v.scores && v.scores[item.id] !== undefined) ? v.scores[item.id] : 3;
-                        if (score < 3) {
+                        const score = (v.scores && v.scores[item.id] !== undefined) ? v.scores[item.id] : 6;
+                        if (score < 6) {
                             indicator.className = "redline-indicator active";
                         } else {
                             indicator.className = "redline-indicator";
@@ -1679,7 +1917,7 @@
             let notesObj = {};
             criteriaSchema.forEach(p => {
                 p.items.forEach(item => {
-                    scores[item.id] = 3;
+                    scores[item.id] = 6; // Default to neutral 60% baseline on 10-point scale
                     notesObj[item.id] = "";
                 });
             });
@@ -1741,10 +1979,13 @@
 
             if (!name) return;
 
+            let newId = "";
             if (activePillarModalMode === 'add') {
-                const newId = "p" + Date.now();
+                newId = "p" + Date.now();
                 criteriaSchema.push({ id: newId, name, owner, icon, items: [] });
+                pillarWeights[newId] = 100; // Default dynamic weight
             } else {
+                newId = editingPillarId;
                 const p = criteriaSchema.find(x => x.id === editingPillarId);
                 if (p) {
                     p.name = name;
@@ -1754,8 +1995,10 @@
             }
 
             await saveCriteriaSchema();
+            await saveWeightsConfig();
             closePillarModal();
             renderCriteriaManager();
+            renderWeightingSliders();
         }
 
         function openCriteriaModal(mode, pillarId, criteriaId = null) {
@@ -1817,7 +2060,7 @@
                 venues.forEach(v => {
                     if (!v.scores) v.scores = {};
                     if (!v.notes) v.notes = {};
-                    v.scores[newId] = 3;
+                    v.scores[newId] = 6; // Default to neutral 60% baseline on 10-point scale
                     v.notes[newId] = "";
                 });
                 
@@ -1912,6 +2155,7 @@
             }
 
             criteriaSchema = criteriaSchema.filter(x => x.id !== pillarIdToDelete);
+            delete pillarWeights[pillarIdToDelete];
             
             if (isSupabaseConfigured) {
                 try {
@@ -1924,8 +2168,10 @@
             }
 
             await saveCriteriaSchema();
+            await saveWeightsConfig();
             closePillarDeleteModal();
             renderCriteriaManager();
+            renderWeightingSliders();
         }
 
         function deleteCriteria(pillarId, criteriaId) {
@@ -2012,6 +2258,8 @@
         window.deleteCriteria = deleteCriteria;
         window.closeCriteriaDeleteModal = closeCriteriaDeleteModal;
         window.confirmDeleteCriteria = confirmDeleteCriteria;
+        window.toggleWeightingSystem = toggleWeightingSystem;
+        window.updatePillarWeight = updatePillarWeight;
 
     </script>
 </body>
