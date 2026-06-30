@@ -395,6 +395,34 @@
         .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px; }
         .btn-cancel { background-color: transparent; border: 1px solid rgba(255, 255, 255, 0.1); color: #94a3b8; font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; padding: 10px 18px; cursor: pointer; }
 
+        /* TOAST NOTIFICATION */
+        .toast-notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #161d2a;
+            border-left: 4px solid #00e5ff;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 15px 25px;
+            color: #ffffff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 200;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
         .redline-indicator.active { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); animation: pulse 2s infinite; }
     </style>
@@ -410,7 +438,12 @@
                 <h1>Host Venue Scorecards</h1>
             </div>
             <!-- Placed in Master header to be accessible on both main summary tabs -->
-            <button class="btn-volt" id="header-add-btn" onclick="openAddVenueModal()"><i class="fa-solid fa-plus"></i> Add Host Venue</button>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <button class="btn-volt" style="background-color: transparent; border: 1px solid rgba(0, 229, 255, 0.4); color: #00e5ff;" onclick="generateShareLink()">
+                    <i class="fa-solid fa-share-nodes"></i> Share Portfolio
+                </button>
+                <button class="btn-volt" id="header-add-btn" onclick="openAddVenueModal()"><i class="fa-solid fa-plus"></i> Add Host Venue</button>
+            </div>
         </div>
 
         <!-- ================= NAVIGATION TABS CONTROL ================= -->
@@ -740,6 +773,12 @@
         </div>
     </div>
 
+    <!-- ================= PREMIUM TOAST NOTIFICATION CONTAINER ================= -->
+    <div id="toast-notification" class="toast-notification">
+        <i class="fa-solid fa-circle-check" style="color: #00e5ff; font-size: 18px;"></i>
+        <span id="toast-message">Shareable link copied to clipboard!</span>
+    </div>
+
     <script>
         let venues = [];
         let criteriaSchema = [];
@@ -823,7 +862,12 @@
         ];
 
         window.onload = function() {
-            migrateOrSeedData();
+            // Check if we are loading a shared URL first
+            const loadedFromShare = checkAndLoadSharedState();
+            
+            if (!loadedFromShare) {
+                migrateOrSeedData();
+            }
 
             // Set up Redline interactivity checklist listener
             document.getElementById("criteria-redline").addEventListener("change", function() {
@@ -831,6 +875,75 @@
             });
 
             switchMainTab('portfolio');
+        }
+
+        // ================= PORTFOLIO SHARING ENGINE =================
+        function generateShareLink() {
+            const state = {
+                venues: venues,
+                schema: criteriaSchema
+            };
+            try {
+                const json = JSON.stringify(state);
+                // Robust Base64 UTF-8 encoding supporting non-ASCII characters
+                const base64 = btoa(unescape(encodeURIComponent(json)));
+                const shareUrl = window.location.origin + window.location.pathname + '#share=' + base64;
+                
+                // Copy to Clipboard (Rule-compliant fallback for iFrame sandbox security)
+                const tempInput = document.createElement("input");
+                tempInput.value = shareUrl;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand("copy");
+                document.body.removeChild(tempInput);
+                
+                showToast("Share link copied to clipboard! Anyone who opens it will see your custom portfolio.");
+            } catch (err) {
+                console.error("Failed to generate share link:", err);
+                showCustomAlert("Error generating shared portfolio configuration. Data size may be too large.");
+            }
+        }
+
+        function checkAndLoadSharedState() {
+            const hash = window.location.hash;
+            if (hash && hash.startsWith('#share=')) {
+                try {
+                    const base64 = hash.substring(7);
+                    const json = decodeURIComponent(escape(atob(base64)));
+                    const state = JSON.parse(json);
+                    if (state && state.venues && state.schema) {
+                        venues = state.venues;
+                        criteriaSchema = state.schema;
+                        
+                        // Override localized browser storage so refresh maintains shared edits
+                        saveToLocalStorage();
+                        saveCriteriaSchema();
+                        
+                        // Clear hash cleanly to keep the address bar tidy
+                        window.history.replaceState(null, null, window.location.pathname);
+                        setTimeout(() => {
+                            showToast("Loaded Shared Portfolio Configuration!");
+                        }, 500);
+                        return true;
+                    }
+                } catch (e) {
+                    console.error("Error parsing shared state:", e);
+                    showCustomAlert("The shared portfolio link appears to be incomplete or corrupted.");
+                }
+            }
+            return false;
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById("toast-notification");
+            const msgSpan = document.getElementById("toast-message");
+            if (toast && msgSpan) {
+                msgSpan.innerText = message;
+                toast.style.display = "flex";
+                setTimeout(() => {
+                    toast.style.display = "none";
+                }, 4000);
+            }
         }
 
         // ================= CONFIGURE SYSTEM STORAGE MIGRATION =================
