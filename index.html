@@ -42,6 +42,7 @@
             width: 100%;
             height: 6px;
             background: linear-gradient(90deg, #ccff00 0%, #00e5ff 100%);
+            z-index: 10;
         }
 
         h1, h2, h3, h4, h5 {
@@ -411,7 +412,7 @@
             font-size: 14px;
             font-weight: 600;
             z-index: 200;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             display: none;
             align-items: center;
             gap: 12px;
@@ -1970,6 +1971,16 @@
             }
             closeCriteriaDeleteModal();
             renderCriteriaManager();
+        }
+
+        // Adhering to No Alert Rule via Premium Modals
+        function showCustomAlert(message) {
+            document.getElementById("custom-alert-message").innerText = message;
+            document.getElementById("custom-alert-modal").style.display = "flex";
+        }
+
+        function closeCustomAlert() {
+            document.getElementById("custom-alert-modal").style.display = "none";
         }
 
         // Expose functions to window context for global inline HTML event handlers (Strict ES Module standard)
