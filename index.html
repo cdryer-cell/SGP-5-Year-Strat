@@ -418,6 +418,23 @@
             animation: slideIn 0.3s ease;
         }
 
+        /* LOADING SYSTEM OVERLAY */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(11, 14, 20, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 500;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
         @keyframes slideIn {
             from { transform: translateY(100px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
@@ -428,6 +445,12 @@
     </style>
 </head>
 <body>
+
+    <!-- CLOUD SYNCHRONIZATION OVERLAY -->
+    <div id="loading-overlay" class="loader-overlay">
+        <i class="fa-solid fa-circle-notch fa-spin" style="color: #ccff00; font-size: 50px;"></i>
+        <p style="font-family: 'Outfit', sans-serif; text-transform: uppercase; font-weight: 700; color: #ffffff; letter-spacing: 2px;">Synchronizing Cloud Database...</p>
+    </div>
 
     <div class="dashboard-container">
 
@@ -779,7 +802,36 @@
         <span id="toast-message">Shareable link copied to clipboard!</span>
     </div>
 
-    <script>
+    <!-- ================= PREMIUM CUSTOM ACTION REQUIRED ALERTS (No-Alert Compliance) ================= -->
+    <div id="custom-alert-modal" class="modal-overlay" style="z-index: 510;">
+        <div class="modal-box" style="border-top-color: #ef4444; width: 400px; text-align: center;">
+            <h3 class="modal-title" style="color: #ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Action Required</h3>
+            <p id="custom-alert-message" style="color: #94a3b8; margin-top: 10px; font-size: 14px; line-height: 1.5;"></p>
+            <div class="modal-actions" style="justify-content: center; margin-top: 15px;">
+                <button class="btn-volt" onclick="closeCustomAlert()" style="background-color: #ef4444; color: #ffffff;">Dismiss</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // ================= SUPABASE CLOUD DATABASE CONFIGURATION =================
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+        // ENTER YOUR SUPABASE CREDS HERE TO ACTIVATE MULTI-USER SYNCING SECURELY:
+        // Paste your Project URL into SUPABASE_URL (Instructions: Settings Cog -> API -> Project URL)
+        const SUPABASE_URL = https://pwybjuszfwsahbhufocl.supabase.co; 
+        
+        // Your Publishable key is copied from your screenshot below:
+        const SUPABASE_ANON_KEY = "sb_publishable_JlnG2ctJnrgAki5TqqohIw_f2wRNpc6";
+
+        const isSupabaseConfigured = SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_ANON_KEY !== "YOUR_SUPABASE_ANON_KEY";
+        let supabase = null;
+
+        if (isSupabaseConfigured) {
+            supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+
+        // ================= DATA STATE ENGINE =================
         let venues = [];
         let criteriaSchema = [];
         let activeFilter = 'all';
@@ -861,12 +913,22 @@
             { id: "san_francisco", name: "San Francisco", p1_1: 3, p1_2: 4, p1_3: 4, p2_1: 5, p2_2: 5, p2_3: 3, p3_1: 5, p3_2: 5, p4_1: 5, p4_2: 5, n1_1: "Premium commercial enterprise anchor.", n2_1: "Reliable structural natural wind machine." }
         ];
 
-        window.onload = function() {
+        window.onload = async function() {
             // Check if we are loading a shared URL first
             const loadedFromShare = checkAndLoadSharedState();
             
             if (!loadedFromShare) {
-                migrateOrSeedData();
+                if (isSupabaseConfigured) {
+                    document.getElementById("loading-overlay").style.display = "flex";
+                    await initSupabaseData();
+                    document.getElementById("loading-overlay").style.display = "none";
+                } else {
+                    document.getElementById("loading-overlay").style.display = "none";
+                    migrateOrSeedData();
+                    showToast("LocalStorage Mode: Edit index.html to paste in your SUPABASE_URL to persist databases globally.");
+                }
+            } else {
+                document.getElementById("loading-overlay").style.display = "none";
             }
 
             // Set up Redline interactivity checklist listener
@@ -877,6 +939,66 @@
             switchMainTab('portfolio');
         }
 
+        // ================= CLOUD DATABASE INITIALIZATION =================
+        async function initSupabaseData() {
+            try {
+                // 1. Get or seed criteria schema
+                const { data: configData, error: configError } = await supabase
+                    .from('portfolio_config')
+                    .select('data')
+                    .eq('id', 'criteria_schema')
+                    .maybeSingle();
+
+                if (configError) throw configError;
+
+                if (!configData) {
+                    criteriaSchema = [...defaultCriteriaSchema];
+                    await supabase.from('portfolio_config').insert({ id: 'criteria_schema', data: criteriaSchema });
+                } else {
+                    criteriaSchema = configData.data;
+                }
+
+                // 2. Get or seed venues
+                const { data: venueData, error: venueError } = await supabase
+                    .from('venues')
+                    .select('*');
+
+                if (venueError) throw venueError;
+
+                if (!venueData || venueData.length === 0) {
+                    const initialVenues = defaultSeedData.map(v => {
+                        let scores = {};
+                        let notes = {};
+                        criteriaSchema.forEach(p => {
+                            p.items.forEach(item => {
+                                scores[item.id] = v[item.id] !== undefined ? v[item.id] : 3;
+                                let noteKey = item.id.replace('p', 'n');
+                                notes[item.id] = v[noteKey] !== undefined ? v[noteKey] : "";
+                            });
+                        });
+                        return {
+                            id: v.id,
+                            name: v.name,
+                            scores: scores,
+                            notes: notes
+                        };
+                    });
+
+                    // Bulk write seeds to Supabase
+                    const { error: seedError } = await supabase.from('venues').insert(initialVenues);
+                    if (seedError) throw seedError;
+
+                    venues = initialVenues;
+                } else {
+                    venues = venueData;
+                }
+            } catch (e) {
+                console.error("Supabase connection error. Falling back to local storage:", e);
+                migrateOrSeedData();
+                showCustomAlert("Could not sync with Supabase database. Working in Local Storage mode.");
+            }
+        }
+
         // ================= PORTFOLIO SHARING ENGINE =================
         function generateShareLink() {
             const state = {
@@ -885,11 +1007,9 @@
             };
             try {
                 const json = JSON.stringify(state);
-                // Robust Base64 UTF-8 encoding supporting non-ASCII characters
                 const base64 = btoa(unescape(encodeURIComponent(json)));
                 const shareUrl = window.location.origin + window.location.pathname + '#share=' + base64;
                 
-                // Copy to Clipboard (Rule-compliant fallback for iFrame sandbox security)
                 const tempInput = document.createElement("input");
                 tempInput.value = shareUrl;
                 document.body.appendChild(tempInput);
@@ -915,11 +1035,9 @@
                         venues = state.venues;
                         criteriaSchema = state.schema;
                         
-                        // Override localized browser storage so refresh maintains shared edits
                         saveToLocalStorage();
                         saveCriteriaSchema();
                         
-                        // Clear hash cleanly to keep the address bar tidy
                         window.history.replaceState(null, null, window.location.pathname);
                         setTimeout(() => {
                             showToast("Loaded Shared Portfolio Configuration!");
@@ -946,9 +1064,8 @@
             }
         }
 
-        // ================= CONFIGURE SYSTEM STORAGE MIGRATION =================
+        // ================= CONFIGURE SYSTEM STORAGE LOCAL FALLBACKS =================
         function migrateOrSeedData() {
-            // 1. Get or seed criteria schema
             let storedSchema = localStorage.getItem("sailgp_criteria_schema");
             if (storedSchema) {
                 criteriaSchema = JSON.parse(storedSchema);
@@ -957,11 +1074,9 @@
                 saveCriteriaSchema();
             }
 
-            // 2. Get or seed venues
             let storedVenues = localStorage.getItem("sailgp_venues_data");
             if (storedVenues) {
                 let parsed = JSON.parse(storedVenues);
-                // If legacy flat format is found, migrate it dynamically into nested dynamic format
                 if (parsed.length > 0 && parsed[0].scores === undefined) {
                     venues = parsed.map(v => {
                         let scores = {};
@@ -1010,8 +1125,12 @@
             localStorage.setItem("sailgp_venues_data", JSON.stringify(venues));
         }
 
-        function saveCriteriaSchema() {
-            localStorage.setItem("sailgp_criteria_schema", JSON.stringify(criteriaSchema));
+        async function saveCriteriaSchema() {
+            if (isSupabaseConfigured) {
+                await supabase.from('portfolio_config').upsert({ id: 'criteria_schema', data: criteriaSchema });
+            } else {
+                localStorage.setItem("sailgp_criteria_schema", JSON.stringify(criteriaSchema));
+            }
         }
 
         // ================= STRATEGIC VIEW TAB TRANSITIONS =================
@@ -1174,7 +1293,6 @@
                 case 'score': 
                     return calculateAggregateScore(v);
                 default: 
-                    // Assume field represents a dynamic pillarId
                     return getPillarAverage(v, field);
             }
         }
@@ -1202,6 +1320,12 @@
             `;
 
             theadRow.innerHTML = html;
+        }
+
+        function handleSort(field) {
+            if (sortField === field) { sortDirection = sortDirection === 'desc' ? 'asc' : 'desc'; } 
+            else { sortField = field; sortDirection = 'desc'; }
+            renderDashboard();
         }
 
         function renderBar(val, max) {
@@ -1280,6 +1404,26 @@
                 `;
                 tbody.appendChild(row);
             });
+        }
+
+        // ================= FILTER & REDLINE SYSTEMS =================
+        function filterPortfolio(archetype, element) {
+            const buttons = document.querySelectorAll(".filter-group .filter-btn:not(.btn-redline)");
+            buttons.forEach(btn => btn.classList.remove("active"));
+            
+            element.classList.add("active");
+            activeFilter = archetype;
+            renderDashboard();
+        }
+
+        function toggleRedlineOnly(btn) {
+            showRedlinesOnly = !showRedlinesOnly;
+            if (showRedlinesOnly) {
+                btn.classList.add("active");
+            } else {
+                btn.classList.remove("active");
+            }
+            renderDashboard();
         }
 
         // ================= DYNAMIC CRITERIA MANAGER SYSTEM =================
@@ -1454,21 +1598,35 @@
             switchMainTab(currentTab);
         }
 
-        // Live scoring update handler (Rule 3 protected writes)
-        function updateVenueScore(criteriaId, value) {
+        // Live scoring update handler (Supabase + Local Fallback)
+        async function updateVenueScore(criteriaId, value) {
             const venue = venues.find(x => x.id === selectedVenueId); if (!venue) return;
             if (!venue.scores) venue.scores = {};
             venue.scores[criteriaId] = parseInt(value); 
-            saveToLocalStorage(); 
+            
+            if (isSupabaseConfigured) {
+                try {
+                    await supabase.from('venues').update({ scores: venue.scores }).eq('id', selectedVenueId);
+                } catch (e) { console.error("Cloud score write failure:", e); }
+            } else {
+                saveToLocalStorage(); 
+            }
             recalculateEditorScores(venue); 
             triggerSaveAlert();
         }
 
-        function updateVenueNote(criteriaId, value) {
+        async function updateVenueNote(criteriaId, value) {
             const venue = venues.find(x => x.id === selectedVenueId); if (!venue) return;
             if (!venue.notes) venue.notes = {};
             venue.notes[criteriaId] = value; 
-            saveToLocalStorage(); 
+            
+            if (isSupabaseConfigured) {
+                try {
+                    await supabase.from('venues').update({ notes: venue.notes }).eq('id', selectedVenueId);
+                } catch (e) { console.error("Cloud notes write failure:", e); }
+            } else {
+                saveToLocalStorage(); 
+            }
             triggerSaveAlert();
         }
 
@@ -1508,7 +1666,7 @@
         function openAddVenueModal() { document.getElementById("add-venue-modal").style.display = "flex"; }
         function closeAddVenueModal() { document.getElementById("add-venue-modal").style.display = "none"; }
 
-        function submitAddVenue() {
+        async function submitAddVenue() {
             const name = document.getElementById("new-venue-name").value.trim();
             const notes = document.getElementById("new-venue-notes").value.trim();
             if(!name) return;
@@ -1530,7 +1688,18 @@
             }
 
             const obj = { id, name, scores, notes: notesObj };
-            venues.push(obj); saveToLocalStorage(); switchMainTab('portfolio'); openScorecard(id);
+            venues.push(obj); 
+            
+            if (isSupabaseConfigured) {
+                try {
+                    await supabase.from('venues').insert([obj]);
+                } catch(e) { console.error("Cloud venue insert failure:", e); }
+            } else {
+                saveToLocalStorage(); 
+            }
+            
+            switchMainTab('portfolio'); 
+            openScorecard(id);
         }
 
         // ================= SCHEMA MODIFICATION ACTIONS =================
@@ -1564,7 +1733,7 @@
             document.getElementById("pillar-modal").style.display = "none";
         }
 
-        function submitPillar() {
+        async function submitPillar() {
             const name = document.getElementById("pillar-name").value.trim();
             const owner = document.getElementById("pillar-owner").value.trim() || "CCO";
             const icon = document.getElementById("pillar-icon").value.trim() || "fa-folder";
@@ -1583,7 +1752,7 @@
                 }
             }
 
-            saveCriteriaSchema();
+            await saveCriteriaSchema();
             closePillarModal();
             renderCriteriaManager();
         }
@@ -1628,7 +1797,7 @@
             document.getElementById("criteria-modal").style.display = "none";
         }
 
-        function submitCriteria() {
+        async function submitCriteria() {
             const title = document.getElementById("criteria-title-input").value.trim();
             const desc = document.getElementById("criteria-desc-input").value.trim();
             const redline = document.getElementById("criteria-redline").checked;
@@ -1650,7 +1819,17 @@
                     v.scores[newId] = 3;
                     v.notes[newId] = "";
                 });
-                saveToLocalStorage();
+                
+                if (isSupabaseConfigured) {
+                    // Update all venues in Supabase to sync custom properties
+                    for (let v of venues) {
+                        try {
+                            await supabase.from('venues').update({ scores: v.scores, notes: v.notes }).eq('id', v.id);
+                        } catch(e) { console.error("Cloud sync mismatch:", e); }
+                    }
+                } else {
+                    saveToLocalStorage();
+                }
             } else {
                 const item = p.items.find(x => x.id === editingCriteriaId);
                 if (item) {
@@ -1661,7 +1840,7 @@
                 }
             }
 
-            saveCriteriaSchema();
+            await saveCriteriaSchema();
             closeCriteriaModal();
             renderCriteriaManager();
         }
@@ -1680,12 +1859,24 @@
             venueIdToDelete = null;
         }
 
-        function confirmDeleteVenue() {
+        async function confirmDeleteVenue() {
             if (!venueIdToDelete) return;
             venues = venues.filter(v => v.id !== venueIdToDelete);
-            saveToLocalStorage();
+            
+            if (isSupabaseConfigured) {
+                try {
+                    await supabase.from('venues').delete().eq('id', venueIdToDelete);
+                } catch(e) { console.error("Cloud venue delete failure:", e); }
+            } else {
+                saveToLocalStorage();
+            }
+            
             closeDeleteModal();
-            renderDashboard();
+            if (currentTab === 'portfolio') {
+                renderDashboard();
+            } else {
+                renderMethodologyDistribution();
+            }
         }
 
         function deletePillar(id) {
@@ -1707,7 +1898,7 @@
             pillarIdToDelete = null;
         }
 
-        function confirmDeletePillar() {
+        async function confirmDeletePillar() {
             if (!pillarIdToDelete) return;
             const p = criteriaSchema.find(x => x.id === pillarIdToDelete);
             if (p) {
@@ -1720,8 +1911,18 @@
             }
 
             criteriaSchema = criteriaSchema.filter(x => x.id !== pillarIdToDelete);
-            saveCriteriaSchema();
-            saveToLocalStorage();
+            
+            if (isSupabaseConfigured) {
+                try {
+                    for (let v of venues) {
+                        await supabase.from('venues').update({ scores: v.scores, notes: v.notes }).eq('id', v.id);
+                    }
+                } catch(e) { console.error("Cloud sync deletion failure:", e); }
+            } else {
+                saveToLocalStorage();
+            }
+
+            await saveCriteriaSchema();
             closePillarDeleteModal();
             renderCriteriaManager();
         }
@@ -1745,7 +1946,7 @@
             criteriaIdToDelete = null;
         }
 
-        function confirmDeleteCriteria() {
+        async function confirmDeleteCriteria() {
             if (!criteriaParentPillarIdToDelete || !criteriaIdToDelete) return;
             const p = criteriaSchema.find(x => x.id === criteriaParentPillarIdToDelete);
             if (p) {
@@ -1754,12 +1955,53 @@
                     if (v.scores) delete v.scores[criteriaIdToDelete];
                     if (v.notes) delete v.notes[criteriaIdToDelete];
                 });
-                saveCriteriaSchema();
-                saveToLocalStorage();
+                
+                if (isSupabaseConfigured) {
+                    try {
+                        for (let v of venues) {
+                            await supabase.from('venues').update({ scores: v.scores, notes: v.notes }).eq('id', v.id);
+                        }
+                    } catch(e) { console.error("Cloud sync deletion failure:", e); }
+                } else {
+                    saveToLocalStorage();
+                }
+                
+                await saveCriteriaSchema();
             }
             closeCriteriaDeleteModal();
             renderCriteriaManager();
         }
+
+        // Expose functions to window context for global inline HTML event handlers (Strict ES Module standard)
+        window.openAddVenueModal = openAddVenueModal;
+        window.closeAddVenueModal = closeAddVenueModal;
+        window.submitAddVenue = submitAddVenue;
+        window.filterPortfolio = filterPortfolio;
+        window.toggleRedlineOnly = toggleRedlineOnly;
+        window.handleSort = handleSort;
+        window.openScorecard = openScorecard;
+        window.showDashboard = showDashboard;
+        window.updateVenueScore = updateVenueScore;
+        window.updateVenueNote = updateVenueNote;
+        window.closeCustomAlert = closeCustomAlert;
+        window.switchMainTab = switchMainTab;
+        window.generateShareLink = generateShareLink;
+        window.openPillarModal = openPillarModal;
+        window.closePillarModal = closePillarModal;
+        window.submitPillar = submitPillar;
+        window.openCriteriaModal = openCriteriaModal;
+        window.closeCriteriaModal = closeCriteriaModal;
+        window.submitCriteria = submitCriteria;
+        window.deleteVenue = deleteVenue;
+        window.closeDeleteModal = closeDeleteModal;
+        window.confirmDeleteVenue = confirmDeleteVenue;
+        window.deletePillar = deletePillar;
+        window.closePillarDeleteModal = closePillarDeleteModal;
+        window.confirmDeletePillar = confirmDeletePillar;
+        window.deleteCriteria = deleteCriteria;
+        window.closeCriteriaDeleteModal = closeCriteriaDeleteModal;
+        window.confirmDeleteCriteria = confirmDeleteCriteria;
+
     </script>
 </body>
 </html>
